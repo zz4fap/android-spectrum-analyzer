@@ -1,0 +1,4 @@
+
+svnadmin create /home/zz4fap/REPOSITORY/SpectrumAnalyser/
+sudo svn import Downloads/CanvasTut2 file:///home/zz4fap/REPOSITORY/SpectrumAnalyser/trunk/CanvasTut2 -m "initial import"
+svn checkout file:///home/zz4fap/REPOSITORY/SpectrumAnalyser/trunk/CanvasTut2
