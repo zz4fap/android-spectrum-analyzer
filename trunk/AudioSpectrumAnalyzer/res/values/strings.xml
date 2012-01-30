@@ -5,7 +5,8 @@
     <string name="app_name">FFT</string>
     <string name="peak_freq">Peak Frequency: </string>
     <string name="center_freq">Center Frequency</string>
-    <string name="sampling_rate">Choose a Sampling Rate</string>
+    <string name="sampling_rate">Sampling Rate</string>
+    <string name="choose_sampling_rate">Choose a Sampling Rate</string>
         <string-array name="frequencies_array">
         <item>8000</item>
         <item>16000</item>
