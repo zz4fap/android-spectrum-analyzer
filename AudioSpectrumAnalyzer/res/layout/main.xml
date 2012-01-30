@@ -19,29 +19,58 @@
         android:layout_height="242px" >
     </com.helloandroid.canvastutorial.Panel>
 
+    <LinearLayout
+        android:id="@+id/center_freq_settings"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+        <LinearLayout
+            android:id="@+id/center_freq_texts"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical" >
+            <TextView
+                android:id="@+id/txt_center_freq"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/center_freq"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/center_freq_buttons"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+            <Button
+                android:id="@+id/btn_shift_center_freq_to_left"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:text="&lt;" />
+            <Button
+                android:id="@+id/btn_shift_center_freq_to_right"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:text="&gt;" />
+        </LinearLayout>
+    </LinearLayout>
+    
+	<TextView
+        android:id="@+id/txt_sampling_rate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/sampling_rate"
+        android:textStyle="bold" >
+    </TextView>
+    
     <Spinner
         android:id="@+id/sampling_rate_spinner"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:prompt="@string/sampling_rate" />
-    
-    <LinearLayout
-        android:id="@+id/center_freq_buttons"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/btn_shift_center_freq_to_left"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="&lt;" />
-        <Button
-            android:id="@+id/btn_shift_center_freq_to_right"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="&gt;" />
-    </LinearLayout>
+        android:prompt="@string/choose_sampling_rate" />
 
 </LinearLayout>
