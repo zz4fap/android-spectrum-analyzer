@@ -4,11 +4,44 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <com.helloandroid.canvastutorial.Panel
-        android:id="@+id/SurfaceView01"
+    <TextView
+        android:id="@+id/peak_frequency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxHeight="40dip" >
+        android:layout_gravity="center"
+        android:text="@string/peak_freq"
+        android:textStyle="bold" >
+    </TextView>
+
+    <com.helloandroid.canvastutorial.Panel
+        android:id="@+id/SurfaceView01"
+        android:layout_width="322px"
+        android:layout_height="242px" >
     </com.helloandroid.canvastutorial.Panel>
+
+    <Spinner
+        android:id="@+id/sampling_rate_spinner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:prompt="@string/sampling_rate" />
+    
+    <LinearLayout
+        android:id="@+id/center_freq_buttons"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/btn_shift_center_freq_to_left"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="&lt;" />
+        <Button
+            android:id="@+id/btn_shift_center_freq_to_right"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="&gt;" />
+    </LinearLayout>
 
 </LinearLayout>

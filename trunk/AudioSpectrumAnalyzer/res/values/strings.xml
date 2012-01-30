@@ -3,5 +3,16 @@
 
     <string name="hello">Hello World, CanvasTut2Activity!</string>
     <string name="app_name">FFT</string>
+    <string name="peak_freq">Peak Frequency: </string>
+    <string name="center_freq">Center Frequency</string>
+    <string name="sampling_rate">Choose a Sampling Rate</string>
+        <string-array name="frequencies_array">
+        <item>8000</item>
+        <item>16000</item>
+        <item>22050</item>
+        <item>44100</item>
+        <item>48000</item>
+        <item>96000</item>
+    </string-array>
 
 </resources>
