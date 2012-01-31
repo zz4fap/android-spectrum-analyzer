@@ -43,13 +43,11 @@ public class AudioProcessing extends Thread {
 	private void runWithSignalHelper(){ // TESTE
 		int numberOfReadBytes = 0;
 		double[] absNormalizedSignal;
-		
-		SignalGenerator signalGenerator = new SignalGenerator();
 
 		while(!stopped) {
 			byte tempBuffer[] = new byte[Constants.BUFFER_SIZE]; // 2*Buffer size because it's a short variable into a array of bytes.
 			double[] signal = new double[Constants.BUFFER_SIZE/2];
-			numberOfReadBytes = signalGenerator.read(tempBuffer,500,getSampleRateInHz(),true,false);
+			numberOfReadBytes = SignalGenerator.read(tempBuffer,1500,getSampleRateInHz(),true,true);
 			if(numberOfReadBytes > 0){
 				for(int i = 0; i < Constants.BUFFER_SIZE/2; i++){
 					signal[i] = (double)((tempBuffer[2*i] & 0xFF) | (tempBuffer[2*i+1] << 8)) / 32768.0F;
