@@ -66,9 +66,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		int freqStep = 1000;
 		Paint p = new Paint();
 
-		for(int freq = 0; freq <= (FFTHelper.getSamplingFrequency()/2); freq = freq + freqStep)
+		for(int freq = 0; freq <= (AudioProcessing.getSampleRateInHz()/2); freq = freq + freqStep)
 		{
-			double point = freq*(((double)FFTHelper.getNumberOfFFTPoints())/(FFTHelper.getSamplingFrequency()));
+			double point = freq*(((double)AudioProcessing.getNumberOfFFTPoints())/(AudioProcessing.getSampleRateInHz()));
 			int pointInt = (int)point;
 
 			pointInt = pointInt + SHIFT_CONST;//add 10 pixels in order to make room for first freq string to be totally written on the screen.
