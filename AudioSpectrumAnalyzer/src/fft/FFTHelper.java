@@ -6,17 +6,24 @@ import dsp.AudioProcessing;
 
 public class FFTHelper
 {
-	private static double mPeakFreq = 0;
-	private static int mPeakPos = 0;
+	private double mPeakFreq;
+	private int mPeakPos;
+	private double mSampleRateInHz;
+	private int mNumberOfFFTPoints;
+	
+	public FFTHelper(double sampleRate, int numberOfFFTPoints){
+		mSampleRateInHz = sampleRate;
+		mNumberOfFFTPoints = numberOfFFTPoints;
+	}
 	
 	public double[] calculateFFT(double[] signal)
 	{			
 		double max = 0.0;
 		Complex[] y;
-		Complex[] complexSignal = new Complex[AudioProcessing.getNumberOfFFTPoints()];
-		double[] absSignal = new double[AudioProcessing.getNumberOfFFTPoints()/2];
+		Complex[] complexSignal = new Complex[mNumberOfFFTPoints];
+		double[] absSignal;
 		
-		for(int i=0; i < AudioProcessing.getNumberOfFFTPoints(); i++)
+		for(int i=0; i < mNumberOfFFTPoints; i++)
 		{
 			if(i < signal.length)
 			{
@@ -33,7 +40,7 @@ public class FFTHelper
 		absSignal = calculateAbsSignal(y);
 		max = getMaxAbsSignal(absSignal);
 		
-		for(int i=0; i < (AudioProcessing.getNumberOfFFTPoints()/2); i++)
+		for(int i=0; i < (mNumberOfFFTPoints/2); i++)
 		{
 			 absSignal[i] = absSignal[i]/max;
 		}
@@ -43,9 +50,9 @@ public class FFTHelper
 	
 	private double[] calculateAbsSignal(Complex[] y)
 	{
-		double[] absSignal = new double[AudioProcessing.getNumberOfFFTPoints()/2];
+		double[] absSignal = new double[mNumberOfFFTPoints/2];
 		
-		for(int i=0; i < (AudioProcessing.getNumberOfFFTPoints()/2); i++)
+		for(int i=0; i < (mNumberOfFFTPoints/2); i++)
 		{
 			 absSignal[i] = Math.sqrt(Math.pow(y[i].re(), 2) + Math.pow(y[i].im(), 2));
 		}
@@ -58,7 +65,7 @@ public class FFTHelper
 		double max = absSignal[0];
 		mPeakPos = 0;
 		
-		for(int i=1; i < (AudioProcessing.getNumberOfFFTPoints()/2); i++)
+		for(int i=1; i < (mNumberOfFFTPoints/2); i++)
 		{
 			 if(absSignal[i] > max)
 			 {
@@ -70,20 +77,20 @@ public class FFTHelper
 		return max;
 	}
 	
-	static public int getPeakPosition(){
+	public int getPeakPosition(){
 		return mPeakPos;
 	}
 	
-	static public double getPeakFrequency(){
-		mPeakFreq = mPeakPos*(AudioProcessing.getSampleRateInHz()/AudioProcessing.getNumberOfFFTPoints());
+	public double getPeakFrequency(){
+		mPeakFreq = mPeakPos*(mSampleRateInHz/mNumberOfFFTPoints);
 		return mPeakFreq;
 	}
 	
-	public static double getPeakFrequency(int[] absSignal){
+	public double getPeakFrequency(int[] absSignal){
 		
 		int peakPos = 0, max = absSignal[0];
 		
-		for(int i=1; i < (AudioProcessing.getNumberOfFFTPoints()/2); i++)
+		for(int i=1; i < (mNumberOfFFTPoints/2); i++)
 		{
 			 if(absSignal[i] > max)
 			 {
@@ -92,6 +99,6 @@ public class FFTHelper
 			 }
 		}
 		
-		return peakPos*(AudioProcessing.getSampleRateInHz()/AudioProcessing.getNumberOfFFTPoints());
+		return peakPos*(mSampleRateInHz/mNumberOfFFTPoints);
 	}
 }

@@ -12,22 +12,22 @@ public class AudioProcessing extends Thread {
 	
 	private static final String TAG = AudioProcessing.class.getSimpleName();
 	
-	private static double mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
-	private static int mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
+	private double mSampleRateInHz;
+	private int mNumberOfFFTPoints;
 	
-	private AudioRecord mRecorder = null;
+	private AudioRecord mRecorder;
 	private int mMinBufferSize;
 	
-	private boolean stopped = false;
+	private boolean stopped;
 	
 	private static AudioProcessingListener mListener;
 	
 	private FFTHelper mFFT;
 	
-	private int mDrawableSignal[];
-	
-	public AudioProcessing(){
-		mFFT = new FFTHelper();
+	public AudioProcessing(double sampleRate, int numberOfFFTPoints){
+		mSampleRateInHz = sampleRate;
+		mNumberOfFFTPoints = numberOfFFTPoints;
+		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
 		start();
 	}
 	
@@ -41,22 +41,22 @@ public class AudioProcessing extends Thread {
 	}
 	
 	private void runWithSignalHelper(){ // TESTE
-		int numberOfReadBytes = 0;
+		int numberOfReadBytes = 0, bufferSize = (int)(2*mSampleRateInHz);
 		double[] absNormalizedSignal;
 
 		while(!stopped) {
-			byte tempBuffer[] = new byte[Constants.BUFFER_SIZE]; // 2*Buffer size because it's a short variable into a array of bytes.
-			double[] signal = new double[Constants.BUFFER_SIZE/2];
-			numberOfReadBytes = SignalGenerator.read(tempBuffer,1500,getSampleRateInHz(),true,true);
+			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
+			double[] signal = new double[bufferSize/2];
+			numberOfReadBytes = SignalGenerator.read(tempBuffer,4000,mSampleRateInHz,true,false);
 			if(numberOfReadBytes > 0){
-				for(int i = 0; i < Constants.BUFFER_SIZE/2; i++){
+				for(int i = 0; i < bufferSize/2; i++){
 					signal[i] = (double)((tempBuffer[2*i] & 0xFF) | (tempBuffer[2*i+1] << 8)) / 32768.0F;
 				}
 				if(mFFT!=null){
 					// Calculate captured signal's FFT.
 					absNormalizedSignal = mFFT.calculateFFT(signal); 
-					mDrawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
-					notifyListenersOnFFTSamplesAvailableForDrawing();
+					int[] drawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
+					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal, mSampleRateInHz, mNumberOfFFTPoints);
 				}
 			} else {
 				Log.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
@@ -65,7 +65,7 @@ public class AudioProcessing extends Thread {
 	}
 	
 	private void runWithAudioRecord(){
-		int numberOfReadBytes = 0;
+		int numberOfReadBytes = 0, bufferSize = (int)(2*mSampleRateInHz);
 		double[] absNormalizedSignal;
 		
 		mMinBufferSize = AudioRecord.getMinBufferSize((int)mSampleRateInHz,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
@@ -79,18 +79,18 @@ public class AudioProcessing extends Thread {
 		mRecorder.startRecording();
 
 		while(!stopped) {
-			byte tempBuffer[] = new byte[Constants.BUFFER_SIZE];
-			double[] signal = new double[Constants.BUFFER_SIZE/2];
-			numberOfReadBytes = mRecorder.read(tempBuffer,0,Constants.BUFFER_SIZE);
+			byte tempBuffer[] = new byte[bufferSize];
+			double[] signal = new double[bufferSize/2];
+			numberOfReadBytes = mRecorder.read(tempBuffer,0,bufferSize);
 			if(numberOfReadBytes > 0){
-				for(int i = 0; i < Constants.BUFFER_SIZE/2; i++){
+				for(int i = 0; i < bufferSize/2; i++){
 					signal[i] = (double)((tempBuffer[2*i] & 0xFF) | (tempBuffer[2*i+1] << 8)) / 32768.0F;
 				}
 				if(mFFT!=null){
 					// Calculate captured signal's FFT.
 					absNormalizedSignal = mFFT.calculateFFT(signal); 
-					mDrawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
-					notifyListenersOnFFTSamplesAvailableForDrawing();
+					int[] drawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
+					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal, mSampleRateInHz, mNumberOfFFTPoints);
 				}
 			} else {
 				Log.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
@@ -101,20 +101,12 @@ public class AudioProcessing extends Thread {
         mRecorder.release();
 	}
 	
-	public static double getSampleRateInHz(){
-		return mSampleRateInHz;
+	public double getPeakFrequency(){
+		return mFFT.getPeakFrequency();
 	}
 	
-	public void setSampleRateInHz(double fs){
-		mSampleRateInHz = fs;
-	}
-	
-	public static int getNumberOfFFTPoints(){
-		return mNumberOfFFTPoints;
-	}
-	
-	public void setNumberOfFFTPoints(int fftPoints){
-		mNumberOfFFTPoints = fftPoints;
+	public double getPeakFrequency(int[] absSignal){
+		return mFFT.getPeakFrequency(absSignal);
 	}
 	
 	public void close(){ 
@@ -129,12 +121,8 @@ public class AudioProcessing extends Thread {
 		mListener = null;
 	}
 	
-	public void notifyListenersOnFFTSamplesAvailableForDrawing(){
+	public void notifyListenersOnFFTSamplesAvailableForDrawing(int[] drawableSignal, double samplingRate, int numberOfFFTPoints){
 		if(mListener!=null)
-			mListener.onDrawableFFTSignalAvailable();
-	}
-	
-	public int[] getDrawableSignal(){
-		return mDrawableSignal;
+			mListener.onDrawableFFTSignalAvailable(drawableSignal, samplingRate, numberOfFFTPoints);
 	}
 }

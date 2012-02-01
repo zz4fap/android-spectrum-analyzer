@@ -16,14 +16,14 @@ public class CanvasDrawing implements AudioProcessingListener {
     }
 
     @Override
-    public void onDrawableFFTSignalAvailable() {
+    public void onDrawableFFTSignalAvailable(int[] drawableSignal, double samplingRate, int numberOfFFTPoints) {
     	if(isSurfaceCreated){
     		Canvas c;
     		c = null;
     		try {
     			c = _surfaceHolder.lockCanvas(null);
     			synchronized (_surfaceHolder) {
-    				_panel.onDraw(c);
+    				_panel.drawSpectrum(c, drawableSignal, samplingRate, numberOfFFTPoints);
     			}
     		} finally {
     			// do this in a finally so that if an exception is thrown

@@ -9,8 +9,8 @@ public class SignalHelper {
 	private static int signal[];
 	private static int signalWithXAxis[] = {0,0,10,0,20,0,30,0,40,0,50,0,60,0,70,0,80,0,90,5,100,20,110,35,120,100,130,45,140,35,150,15,160,5,170,0,180,0,190,0,200,0,210,0,220,0,230,0,240,0,250,0,260,0,270,0,280,0,290,0,300,0,310,0,320,0,330,0,340,0,350,0};
 		
-	static public int[] getTestSignal(){
-		signal = new int[AudioProcessing.getNumberOfFFTPoints()/2];
+	static public int[] getTestSignal(int numberOfFFTPoints){
+		signal = new int[numberOfFFTPoints/2];
 		signal[9] = 5;
 		signal[10] = 20;
 		signal[11] = 35;
@@ -25,9 +25,9 @@ public class SignalHelper {
 	
 	private static double mScaleFator = 100;
 	
-	static public int[] getTestSignalWithSpecificFrequency(double freq){
-		signal = new int[AudioProcessing.getNumberOfFFTPoints()/2];
-		double pos = freq*((double)AudioProcessing.getNumberOfFFTPoints()/AudioProcessing.getSampleRateInHz());
+	static public int[] getTestSignalWithSpecificFrequency(double freq, int numberOfFFTPoints, double sampleRateInHz){
+		signal = new int[numberOfFFTPoints/2];
+		double pos = freq*((double)numberOfFFTPoints/sampleRateInHz);
 		int posInt = (int) pos;
 		signal[posInt]=100;
 		return signal;
@@ -38,11 +38,7 @@ public class SignalHelper {
 	}
 	
 	static public int[] getDrawableFFTSignal(int[] signal) {
-		
-		if(signal.length!=(AudioProcessing.getNumberOfFFTPoints()/2)){
-			throw new RuntimeException("Number of FFT Points is different!!!");
-		}
-		
+
 		int drawableFFTSignal[] = new int[2*signal.length];
 		
 		int i = 0;
@@ -56,10 +52,6 @@ public class SignalHelper {
 	}
 	
 	static public int[] getDrawableFFTSignal(double[] absSignal) {
-		
-		if(absSignal.length!=(AudioProcessing.getNumberOfFFTPoints()/2)){
-			throw new RuntimeException("Number of FFT Points is different!!!");
-		}
 		
 		int drawableFFTSignal[] = new int[2*absSignal.length];
 		

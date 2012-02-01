@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import dsp.AudioProcessing;
 import dsp.SignalHelper;
+import fft.Constants;
 import fft.FFTHelper;
 
 import android.content.Context;
@@ -28,16 +29,15 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 	private int mWidth; 
 	private int mHeight;
 	private int mOrientation;
-	private Display mDisplay = null;
+	private Display mDisplay;
 
 	private int mDrawableSignal[];
 
 	private static final int SHIFT_CONST = 10;
-	
-	private AudioProcessing mAudioCapture = null;
 
 	public Panel(Context context, AttributeSet attrs) {
-		super(context, attrs); 
+		super(context, attrs);
+		Log.d("ZZ4FAP: ","Panel created");
 		getHolder().addCallback(this);
 		mCanvasDrawing = new CanvasDrawing(getHolder(), this);
 		setFocusable(true);
@@ -47,6 +47,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 
 	public Panel(Context context) {
 		super(context);
+		Log.d("ZZ4FAP: ","Panel created");
 		getHolder().addCallback(this);
 		mCanvasDrawing = new CanvasDrawing(getHolder(), this);
 		setFocusable(true);
@@ -56,19 +57,23 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void onDraw(Canvas canvas) {
+		//drawSpectrum(canvas);
+	}
+	
+	public void drawSpectrum(Canvas canvas, int[] drawableSignal, double samplingRate, int numberOfFFTPoints){
 		canvas.drawColor(Color.BLACK);
-		drawSpectrumMarks(canvas);
-		drawFFTSignal(canvas);
-		drawPeakFrequencyMarkAndText(canvas);
+		drawSpectrumMarks(canvas, samplingRate, numberOfFFTPoints);
+		drawFFTSignal(canvas, drawableSignal);
+		drawCenterFrequencyMarkAndText(canvas,samplingRate/4);
 	}
 
-	void drawSpectrumMarks(Canvas canvas) {
+	void drawSpectrumMarks(Canvas canvas, double samplingRate, int numberOfFFTPoints) {
 		int freqStep = 1000;
 		Paint p = new Paint();
 
-		for(int freq = 0; freq <= (AudioProcessing.getSampleRateInHz()/2); freq = freq + freqStep)
+		for(int freq = 0; freq <= (int)(samplingRate/2); freq = freq + freqStep)
 		{
-			double point = freq*(((double)AudioProcessing.getNumberOfFFTPoints())/(AudioProcessing.getSampleRateInHz()));
+			double point = freq*(((double)numberOfFFTPoints)/(samplingRate));
 			int pointInt = (int)point;
 
 			pointInt = pointInt + SHIFT_CONST;//add 10 pixels in order to make room for first freq string to be totally written on the screen.
@@ -83,20 +88,24 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
-	void drawFFTSignal(Canvas canvas) {
+	void drawFFTSignal(Canvas canvas, int[] drawableSignal) {
 		Paint p = new Paint();
 		p.setColor(Color.RED);		
-		mDrawableSignal = mAudioCapture.getDrawableSignal();
-		for(int count=0;count<=(mDrawableSignal.length-4);count=count+2){
-			canvas.drawLine((mDrawableSignal[count]+SHIFT_CONST), ((mHeight-30)-mDrawableSignal[count+1]), (mDrawableSignal[count+2]+SHIFT_CONST), ((mHeight-30)-mDrawableSignal[count+3]), p);
+		for(int count=0;count<=(drawableSignal.length-4);count=count+2){
+			canvas.drawLine((drawableSignal[count]+SHIFT_CONST), ((mHeight-30)-drawableSignal[count+1]), (drawableSignal[count+2]+SHIFT_CONST), ((mHeight-30)-drawableSignal[count+3]), p);
 		}
 	}
 
-	void drawPeakFrequencyMarkAndText(Canvas canvas) {
+	void drawPeakFrequencyMarkAndText(Canvas canvas, double peakFreq) {
 		Paint p = new Paint();
 		p.setColor(Color.WHITE);
-		double peakFreq = FFTHelper.getPeakFrequency();
 		canvas.drawText("Peak Freq: "+peakFreq+" Hz",100,(mHeight-150),p);// plot frequencies
+	}
+	
+	void drawCenterFrequencyMarkAndText(Canvas canvas, double centerFreq) {
+		Paint p = new Paint();
+		p.setColor(Color.WHITE);
+		canvas.drawText("Center Freq: "+centerFreq+" Hz",(mWidth/2),(mHeight-150),p);
 	}
 
 	void getScreenInfo() {
@@ -124,15 +133,14 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 	
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		mAudioCapture = new AudioProcessing();
-		AudioProcessing.registerDrawableFFTSamplesAvailableListener(mCanvasDrawing);
+		Log.d("ZZ4FAP: ","surfaceCreated");
 		mCanvasDrawing.setIsSurfaceCreated(true);
+		AudioProcessing.registerDrawableFFTSamplesAvailableListener(mCanvasDrawing);
 		getViewInfo();
 	}
 	
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		mAudioCapture.close();
 		mCanvasDrawing.setIsSurfaceCreated(false);
 		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
 	}
