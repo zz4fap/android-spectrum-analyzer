@@ -16,7 +16,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Canvastutorial extends Activity implements Button.OnClickListener {
+public class Canvastutorial extends Activity implements Button.OnClickListener, AudioProcessingListener {
 	
 	private static final String TAG = Canvastutorial.class.getSimpleName();
 	
@@ -47,6 +47,7 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 	protected void onResume(){
 		super.onResume();
 		mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
+		AudioProcessing.registerDrawableFFTSamplesAvailableListener(this);
 	}
 	
 	private void setSpectrumAnalyzer(){
@@ -180,6 +181,7 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 	protected void onPause(){
 		super.onPause();
 		mAudioCapture.close();
+		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
 	}
 	
 	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints){
@@ -196,5 +198,15 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 			mAudioCapture.close();
 			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
 		}
+	}
+
+	@Override
+	public void onDrawableFFTSignalAvailable(final int[] drawableSignal) {
+		Canvastutorial.this.runOnUiThread(new Runnable() {
+            public void run() {
+        		spectrum_display.drawSpectrum(drawableSignal, mSampleRateInHz, mNumberOfFFTPoints);
+        		peak_freq_text_view.setText(Double.toString(mAudioCapture.getPeakFrequency()));
+            }
+        });
 	}
 }
