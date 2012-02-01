@@ -47,7 +47,7 @@ public class AudioProcessing extends Thread {
 		while(!stopped) {
 			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
 			double[] signal = new double[bufferSize/2];
-			numberOfReadBytes = SignalGenerator.read(tempBuffer,4000,mSampleRateInHz,true,false);
+			numberOfReadBytes = SignalGenerator.read(tempBuffer,1000,mSampleRateInHz,true,false);
 			if(numberOfReadBytes > 0){
 				for(int i = 0; i < bufferSize/2; i++){
 					signal[i] = (double)((tempBuffer[2*i] & 0xFF) | (tempBuffer[2*i+1] << 8)) / 32768.0F;

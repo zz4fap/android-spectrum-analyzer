@@ -41,20 +41,12 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 		setContentView(R.layout.main);
 		
 		setSpectrumAnalyzer();
-		mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
-		Log.d("ZZ4FAP: ","After calling setSpectrumAnalyzer()");
-	}
-	
-	@Override
-	protected void onStart(){
-		super.onStart();
-		Log.d("ZZ4FAP: ","onStart");
 	}
 	
 	@Override
 	protected void onResume(){
 		super.onResume();
-		Log.d("ZZ4FAP: ","onResume");
+		mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
 	}
 	
 	private void setSpectrumAnalyzer(){
@@ -116,8 +108,6 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 				samplingRate = 8000.0;
 				break;
 			}
-			
-			Log.i("ZZ4FAP: ","freq: "+samplingRate);
 			onSamplingRateChanged(samplingRate);
 		}
 
@@ -159,8 +149,6 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 				numberOfFFTPoints = 512;
 				break;
 			}
-			
-			Log.i("ZZ4FAP: ","FFT: "+numberOfFFTPoints);
 			onNumberOfFFTPointsChanged(numberOfFFTPoints);
 		}
 
@@ -189,8 +177,8 @@ public class Canvastutorial extends Activity implements Button.OnClickListener {
 	}
 	
 	@Override
-	protected void onDestroy(){
-		super.onDestroy();
+	protected void onPause(){
+		super.onPause();
 		mAudioCapture.close();
 	}
 	
