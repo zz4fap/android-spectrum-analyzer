@@ -22,6 +22,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 	private SurfaceHolder mSurfaceHolder;
 
 	private static final int SHIFT_CONST = 10;
+	private static final double SCALE_FACTOR = 100.0;
 
 	public Panel(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -43,7 +44,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		mDisplay = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	}
 	
-	public void drawSpectrum(int[] drawableSignal, double samplingRate, int numberOfFFTPoints){
+	public void drawSpectrum(double[] absSignal, double samplingRate, int numberOfFFTPoints){
     	if(isSurfaceCreated){
     		Canvas canvas;
     		canvas = null;
@@ -52,7 +53,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
     			synchronized (mSurfaceHolder) {
     				canvas.drawColor(Color.BLACK);
     				drawSpectrumMarks(canvas, samplingRate, numberOfFFTPoints);
-    				drawFFTSignal(canvas, drawableSignal);
+    				drawFFTSignal(canvas, absSignal);
     				drawCenterFrequencyMarkAndText(canvas,samplingRate/4);
     			}
     		} finally {
@@ -86,12 +87,12 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 			canvas.drawLine(pointInt,(mHeight-15),pointInt,(mHeight-30), p);// plot markers
 		}
 	}
-
-	private void drawFFTSignal(Canvas canvas, int[] drawableSignal) {
+	
+	private void drawFFTSignal(Canvas canvas, double[] absSignal) {
 		Paint p = new Paint();
-		p.setColor(Color.RED);		
-		for(int count=0;count<=(drawableSignal.length-4);count=count+2){
-			canvas.drawLine((drawableSignal[count]+SHIFT_CONST), ((mHeight-30)-drawableSignal[count+1]), (drawableSignal[count+2]+SHIFT_CONST), ((mHeight-30)-drawableSignal[count+3]), p);
+		p.setColor(Color.RED);
+		for(int i = 0; i < (absSignal.length-1); i++){
+			canvas.drawLine((i+SHIFT_CONST), ((mHeight-30)-((int)(SCALE_FACTOR*absSignal[i]))), (i+1+SHIFT_CONST), ((mHeight-30)-((int)(SCALE_FACTOR*absSignal[i+1]))), p);
 		}
 	}
 

@@ -48,6 +48,31 @@ public class FFTHelper
 		return absSignal;
 	}
 	
+	public double[] calculateFFT(byte[] signal)
+	{			
+		double max = 0.0, temp;
+		Complex[] y;
+		Complex[] complexSignal = new Complex[mNumberOfFFTPoints];
+		double[] absSignal;
+		
+		for(int i = 0; i < mNumberOfFFTPoints; i++){
+			temp = (double)((signal[2*i] & 0xFF) | (signal[2*i+1] << 8)) / 32768.0F;
+			complexSignal[i] = new Complex(temp,0.0);
+		}
+
+		y = FFT.fft(complexSignal);
+		
+		absSignal = calculateAbsSignal(y);
+		max = getMaxAbsSignal(absSignal);
+		
+		for(int i=0; i < (mNumberOfFFTPoints/2); i++)
+		{
+			 absSignal[i] = absSignal[i]/max;
+		}
+		
+		return absSignal;
+	}
+	
 	private double[] calculateAbsSignal(Complex[] y)
 	{
 		double[] absSignal = new double[mNumberOfFFTPoints/2];
