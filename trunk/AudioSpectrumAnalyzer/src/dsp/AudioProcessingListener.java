@@ -2,5 +2,5 @@ package dsp;
 
 public interface AudioProcessingListener {
 	
-	void onDrawableFFTSignalAvailable();
+	void onDrawableFFTSignalAvailable(int[] drawableSignal, double samplingRate, int numberOfFFTPoints);
 }

@@ -1,9 +1,12 @@
 package com.helloandroid.canvastutorial;
 
 import dsp.AudioProcessing;
+import dsp.AudioProcessingListener;
+import fft.Constants;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -13,7 +16,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Canvastutorial extends Activity implements  Button.OnClickListener{
+public class Canvastutorial extends Activity implements Button.OnClickListener {
 	
 	private static final String TAG = Canvastutorial.class.getSimpleName();
 	
@@ -22,6 +25,14 @@ public class Canvastutorial extends Activity implements  Button.OnClickListener{
 	private Button move_center_freq_to_left_button;
 	private Button move_center_freq_to_right_button;
 	private TextView peak_freq_text_view;
+	private Panel spectrum_display;
+	
+	private SurfaceHolder surface_holder;
+	
+	private AudioProcessing mAudioCapture;
+	
+	private double mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
+	private int mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -30,6 +41,20 @@ public class Canvastutorial extends Activity implements  Button.OnClickListener{
 		setContentView(R.layout.main);
 		
 		setSpectrumAnalyzer();
+		mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
+		Log.d("ZZ4FAP: ","After calling setSpectrumAnalyzer()");
+	}
+	
+	@Override
+	protected void onStart(){
+		super.onStart();
+		Log.d("ZZ4FAP: ","onStart");
+	}
+	
+	@Override
+	protected void onResume(){
+		super.onResume();
+		Log.d("ZZ4FAP: ","onResume");
 	}
 	
 	private void setSpectrumAnalyzer(){
@@ -56,35 +81,44 @@ public class Canvastutorial extends Activity implements  Button.OnClickListener{
 		
 		// get text view which is used to display the current peak frequency.
 		peak_freq_text_view = (TextView) findViewById(R.id.txt_peak_freq);
+		
+		// get the Surface view which is used to draw the spectrum.
+		spectrum_display = (Panel) findViewById(R.id.SurfaceView01);
+		surface_holder = spectrum_display.getHolder();
 	}
 
 	public class OnSamplingRateItemSelectedListener implements OnItemSelectedListener {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
 			
+			double samplingRate;
+			
 			switch(pos){
 			case 0:
-				Log.i("ZZ4FAP: ","8000");
+				samplingRate = 8000.0;
 				break;
 			case 1:
-				Log.i("ZZ4FAP: ","16000");
+				samplingRate = 16000.0;
 				break;
 			case 2:
-				Log.i("ZZ4FAP: ","22050");
+				samplingRate = 22050.0;
 				break;
 			case 3:
-				Log.i("ZZ4FAP: ","44100");
+				samplingRate = 44100.0;
 				break;
 			case 4:
-				Log.i("ZZ4FAP: ","48000");
+				samplingRate = 48000.0;
 				break;
 			case 5:
-				Log.i("ZZ4FAP: ","96000");
+				samplingRate = 96000.0;
 				break;
 			default:
-				Log.e(TAG,"Invalid Option!!!");
+				samplingRate = 8000.0;
 				break;
 			}
+			
+			Log.i("ZZ4FAP: ","freq: "+samplingRate);
+			onSamplingRateChanged(samplingRate);
 		}
 
 		public void onNothingSelected(AdapterView parent) {
@@ -96,32 +130,38 @@ public class Canvastutorial extends Activity implements  Button.OnClickListener{
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
 			
+			int numberOfFFTPoints;
+			
 			switch(pos){
 			case 0:
 				Log.i("ZZ4FAP: ","Automatic");
+				numberOfFFTPoints = 512;
 				break;
 			case 1:
-				Log.i("ZZ4FAP: ","64");
+				numberOfFFTPoints = 64;
 				break;
 			case 2:
-				Log.i("ZZ4FAP: ","128");
+				numberOfFFTPoints = 128;
 				break;
 			case 3:
-				Log.i("ZZ4FAP: ","256");
+				numberOfFFTPoints = 256;
 				break;
 			case 4:
-				Log.i("ZZ4FAP: ","512");
+				numberOfFFTPoints = 512;
 				break;
 			case 5:
-				Log.i("ZZ4FAP: ","1024");
+				numberOfFFTPoints = 1024;
 				break;
 			case 6:
-				Log.i("ZZ4FAP: ","2048");
+				numberOfFFTPoints = 2048;
 				break;
 			default:
-				Log.e(TAG,"Invalid Option!!!");
+				numberOfFFTPoints = 512;
 				break;
 			}
+			
+			Log.i("ZZ4FAP: ","FFT: "+numberOfFFTPoints);
+			onNumberOfFFTPointsChanged(numberOfFFTPoints);
 		}
 
 		public void onNothingSelected(AdapterView parent) {
@@ -146,5 +186,27 @@ public class Canvastutorial extends Activity implements  Button.OnClickListener{
 			Log.e(TAG,"Invalid Option!!!");
 			break;
     	}
+	}
+	
+	@Override
+	protected void onDestroy(){
+		super.onDestroy();
+		mAudioCapture.close();
+	}
+	
+	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints){
+		if(numberOfFFTPoints!=mNumberOfFFTPoints){
+			mNumberOfFFTPoints = numberOfFFTPoints;
+			mAudioCapture.close();
+			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
+		}
+	}
+	
+	private void onSamplingRateChanged(double samplingRate){
+		if(samplingRate!=mSampleRateInHz){
+			mSampleRateInHz = samplingRate;
+			mAudioCapture.close();
+			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
+		}
 	}
 }
