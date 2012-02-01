@@ -1,37 +1,25 @@
 package com.helloandroid.canvastutorial;
 
-import java.util.ArrayList;
-
-import dsp.AudioProcessing;
-import dsp.SignalHelper;
-import fft.Constants;
-import fft.FFTHelper;
-
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
 public class Panel extends SurfaceView implements SurfaceHolder.Callback {
-	
-	private CanvasDrawing mCanvasDrawing;
 
 	private Context mContext;
 	private int mWidth; 
 	private int mHeight;
 	private int mOrientation;
 	private Display mDisplay;
-
-	private int mDrawableSignal[];
+	private boolean isSurfaceCreated;
+	private SurfaceHolder mSurfaceHolder;
 
 	private static final int SHIFT_CONST = 10;
 
@@ -39,7 +27,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		super(context, attrs);
 		Log.d("ZZ4FAP: ","Panel created");
 		getHolder().addCallback(this);
-		mCanvasDrawing = new CanvasDrawing(getHolder(), this);
+		mSurfaceHolder = getHolder();
 		setFocusable(true);
 		mContext = context;
 		mDisplay = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -49,25 +37,36 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		super(context);
 		Log.d("ZZ4FAP: ","Panel created");
 		getHolder().addCallback(this);
-		mCanvasDrawing = new CanvasDrawing(getHolder(), this);
+		mSurfaceHolder = getHolder();
 		setFocusable(true);
 		mContext = context;
 		mDisplay = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	}
-
-	@Override
-	public void onDraw(Canvas canvas) {
-		//drawSpectrum(canvas);
-	}
 	
-	public void drawSpectrum(Canvas canvas, int[] drawableSignal, double samplingRate, int numberOfFFTPoints){
-		canvas.drawColor(Color.BLACK);
-		drawSpectrumMarks(canvas, samplingRate, numberOfFFTPoints);
-		drawFFTSignal(canvas, drawableSignal);
-		drawCenterFrequencyMarkAndText(canvas,samplingRate/4);
+	public void drawSpectrum(int[] drawableSignal, double samplingRate, int numberOfFFTPoints){
+    	if(isSurfaceCreated){
+    		Canvas canvas;
+    		canvas = null;
+    		try {
+    			canvas = mSurfaceHolder.lockCanvas(null);
+    			synchronized (mSurfaceHolder) {
+    				canvas.drawColor(Color.BLACK);
+    				drawSpectrumMarks(canvas, samplingRate, numberOfFFTPoints);
+    				drawFFTSignal(canvas, drawableSignal);
+    				drawCenterFrequencyMarkAndText(canvas,samplingRate/4);
+    			}
+    		} finally {
+    			// do this in a finally so that if an exception is thrown
+    			// during the above, we don't leave the Surface in an
+    			// inconsistent state
+    			if (canvas != null) {
+    				mSurfaceHolder.unlockCanvasAndPost(canvas);
+    			}
+    		}	
+    	}
 	}
 
-	void drawSpectrumMarks(Canvas canvas, double samplingRate, int numberOfFFTPoints) {
+	private void drawSpectrumMarks(Canvas canvas, double samplingRate, int numberOfFFTPoints) {
 		int freqStep = 1000;
 		Paint p = new Paint();
 
@@ -88,7 +87,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
-	void drawFFTSignal(Canvas canvas, int[] drawableSignal) {
+	private void drawFFTSignal(Canvas canvas, int[] drawableSignal) {
 		Paint p = new Paint();
 		p.setColor(Color.RED);		
 		for(int count=0;count<=(drawableSignal.length-4);count=count+2){
@@ -96,26 +95,19 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
-	void drawPeakFrequencyMarkAndText(Canvas canvas, double peakFreq) {
+	private void drawPeakFrequencyMarkAndText(Canvas canvas, double peakFreq) {
 		Paint p = new Paint();
 		p.setColor(Color.WHITE);
 		canvas.drawText("Peak Freq: "+peakFreq+" Hz",100,(mHeight-150),p);// plot frequencies
 	}
 	
-	void drawCenterFrequencyMarkAndText(Canvas canvas, double centerFreq) {
+	private void drawCenterFrequencyMarkAndText(Canvas canvas, double centerFreq) {
 		Paint p = new Paint();
 		p.setColor(Color.WHITE);
 		canvas.drawText("Center Freq: "+centerFreq+" Hz",(mWidth/2),(mHeight-150),p);
 	}
 
-	void getScreenInfo() {
-		mWidth = mDisplay.getWidth();
-		mHeight = mDisplay.getHeight();
-		mOrientation = mDisplay.getOrientation();
-		Log.i("ZZ4FAP: ","Width: "+mWidth+" - Height: "+mHeight+" - Orientation: "+mOrientation);
-	}
-
-	void getViewInfo() {
+	private void getViewInfo() {
 		mWidth = getWidth();
 		mHeight = getHeight();
 		mOrientation = mDisplay.getOrientation();
@@ -134,14 +126,12 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		Log.d("ZZ4FAP: ","surfaceCreated");
-		mCanvasDrawing.setIsSurfaceCreated(true);
-		AudioProcessing.registerDrawableFFTSamplesAvailableListener(mCanvasDrawing);
+		isSurfaceCreated = true;
 		getViewInfo();
 	}
 	
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		mCanvasDrawing.setIsSurfaceCreated(false);
-		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
+		isSurfaceCreated = false;
 	}
 }   

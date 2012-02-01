@@ -89,7 +89,7 @@ public class SignalHelper {
 				}
 				// add noise to the signal
 				if(addNoise){
-					s = (short)(temp + (double)((32767.0F/2)*Math.random()));
+					s = (short)(temp + (double)((32767.0F/4)*Math.random()));
 				} else {
 					s = (short)temp;
 				}
@@ -98,6 +98,34 @@ public class SignalHelper {
 			}
 			
 			return L;
+		}
+		
+		public static int read(byte[] audioData, int frequency, int numberOfBytesToRead, double samplingRate, boolean twoSinoids, boolean addNoise) {
+			
+			double T = (1/samplingRate); // Sample time
+			short s;
+			double temp;
+			
+			for(int i = 0; i < numberOfBytesToRead; i++){
+				double arg = (double)(2*Constants.PI*frequency*((double)i*T));
+				
+				// first sinoid
+				temp = (((double)(32767.0F/2))*Math.sin(arg));
+				//second sinoid with 2*frequency
+				if(twoSinoids){
+					temp = temp + (((double)(32767.0F/2))*Math.sin(2*arg)); 
+				}
+				// add noise to the signal
+				if(addNoise){
+					s = (short)(temp + (double)((32767.0F/4)*Math.random()));
+				} else {
+					s = (short)temp;
+				}
+				audioData[2*i] = (byte)(s & 0xFF);
+				audioData[2*i+1] = (byte)((s >> 8) & 0xFF);
+			}
+			
+			return numberOfBytesToRead;
 		}
 	}
 }

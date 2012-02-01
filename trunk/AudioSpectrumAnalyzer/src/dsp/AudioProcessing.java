@@ -34,7 +34,7 @@ public class AudioProcessing extends Thread {
 	@Override
 	public void run(){
 		if(Constants.DEBUG_MODE){
-			runWithSignalHelper();
+			runWithSignalHelperv2();
 		} else {
 			runWithAudioRecord();
 		}
@@ -56,7 +56,31 @@ public class AudioProcessing extends Thread {
 					// Calculate captured signal's FFT.
 					absNormalizedSignal = mFFT.calculateFFT(signal); 
 					int[] drawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
-					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal, mSampleRateInHz, mNumberOfFFTPoints);
+					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal);
+				}
+			} else {
+				Log.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
+			}
+		}
+	}
+	
+	private void runWithSignalHelperv2(){ // TESTE
+		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
+		double[] absNormalizedSignal;
+
+		while(!stopped) {
+			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
+			double[] signal = new double[bufferSize/2];
+			numberOfReadBytes = SignalGenerator.read(tempBuffer,500,mNumberOfFFTPoints,mSampleRateInHz,true,false);
+			if(numberOfReadBytes > 0){
+				for(int i = 0; i < bufferSize/2; i++){
+					signal[i] = (double)((tempBuffer[2*i] & 0xFF) | (tempBuffer[2*i+1] << 8)) / 32768.0F;
+				}
+				if(mFFT!=null){
+					// Calculate captured signal's FFT.
+					absNormalizedSignal = mFFT.calculateFFT(signal); 
+					int[] drawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
+					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal);
 				}
 			} else {
 				Log.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
@@ -90,7 +114,7 @@ public class AudioProcessing extends Thread {
 					// Calculate captured signal's FFT.
 					absNormalizedSignal = mFFT.calculateFFT(signal); 
 					int[] drawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
-					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal, mSampleRateInHz, mNumberOfFFTPoints);
+					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal);
 				}
 			} else {
 				Log.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
@@ -121,8 +145,8 @@ public class AudioProcessing extends Thread {
 		mListener = null;
 	}
 	
-	public void notifyListenersOnFFTSamplesAvailableForDrawing(int[] drawableSignal, double samplingRate, int numberOfFFTPoints){
+	public void notifyListenersOnFFTSamplesAvailableForDrawing(int[] drawableSignal){
 		if(mListener!=null)
-			mListener.onDrawableFFTSignalAvailable(drawableSignal, samplingRate, numberOfFFTPoints);
+			mListener.onDrawableFFTSignalAvailable(drawableSignal);
 	}
 }
