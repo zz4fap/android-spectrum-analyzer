@@ -34,37 +34,13 @@ public class AudioProcessing extends Thread {
 	@Override
 	public void run(){
 		if(Constants.DEBUG_MODE){
-			runWithSignalHelperv2();
+			runWithSignalHelper();
 		} else {
 			runWithAudioRecord();
 		}
 	}
 	
 	private void runWithSignalHelper(){ // TESTE
-		int numberOfReadBytes = 0, bufferSize = (int)(2*mSampleRateInHz);
-		double[] absNormalizedSignal;
-
-		while(!stopped) {
-			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
-			double[] signal = new double[bufferSize/2];
-			numberOfReadBytes = SignalGenerator.read(tempBuffer,1000,mSampleRateInHz,true,false);
-			if(numberOfReadBytes > 0){
-				for(int i = 0; i < bufferSize/2; i++){
-					signal[i] = (double)((tempBuffer[2*i] & 0xFF) | (tempBuffer[2*i+1] << 8)) / 32768.0F;
-				}
-				if(mFFT!=null){
-					// Calculate captured signal's FFT.
-					absNormalizedSignal = mFFT.calculateFFT(signal); 
-					int[] drawableSignal = SignalHelper.getDrawableFFTSignal(absNormalizedSignal);
-					notifyListenersOnFFTSamplesAvailableForDrawing(drawableSignal);
-				}
-			} else {
-				Log.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
-			}
-		}
-	}
-	
-	private void runWithSignalHelperv2(){ // TESTE
 		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 
@@ -89,7 +65,7 @@ public class AudioProcessing extends Thread {
 	}
 	
 	private void runWithAudioRecord(){
-		int numberOfReadBytes = 0, bufferSize = (int)(2*mSampleRateInHz);
+		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 		
 		mMinBufferSize = AudioRecord.getMinBufferSize((int)mSampleRateInHz,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
