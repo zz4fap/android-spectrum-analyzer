@@ -1,4 +1,5 @@
-package fft; 
+package fft;
+
 import fft.*;;
 
 /*************************************************************************
@@ -23,7 +24,6 @@ import fft.*;;
 
 public class FFT 
 {
-
     // compute the FFT of x[], assuming its length is a power of 2
     public static Complex[] fft(Complex[] x) 
     {
@@ -61,7 +61,6 @@ public class FFT
         }
         return y;
     }
-
 
     // compute the inverse FFT of x[], assuming its length is a power of 2
     public static Complex[] ifft(Complex[] x) 

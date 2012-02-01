@@ -204,7 +204,7 @@ public class Canvastutorial extends Activity implements Button.OnClickListener, 
 	public void onDrawableFFTSignalAvailable(final double[] absSignal) {
 		Canvastutorial.this.runOnUiThread(new Runnable() {
             public void run() {
-        		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints);
+        		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample());
         		peak_freq_text_view.setText(Double.toString(mAudioCapture.getPeakFrequency()));
             }
         });
