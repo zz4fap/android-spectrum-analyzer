@@ -26,7 +26,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 
 	public Panel(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		Log.d("ZZ4FAP: ","Panel created");
 		getHolder().addCallback(this);
 		mSurfaceHolder = getHolder();
 		setFocusable(true);
@@ -36,7 +35,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 
 	public Panel(Context context) {
 		super(context);
-		Log.d("ZZ4FAP: ","Panel created");
 		getHolder().addCallback(this);
 		mSurfaceHolder = getHolder();
 		setFocusable(true);
@@ -44,7 +42,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		mDisplay = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	}
 	
-	public void drawSpectrum(double[] absSignal, double samplingRate, int numberOfFFTPoints){
+	public void drawSpectrum(double[] absSignal, double samplingRate, int numberOfFFTPoints, double maxFFTSample){
     	if(isSurfaceCreated){
     		Canvas canvas;
     		canvas = null;
@@ -53,7 +51,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
     			synchronized (mSurfaceHolder) {
     				canvas.drawColor(Color.BLACK);
     				drawSpectrumMarks(canvas, samplingRate, numberOfFFTPoints);
-    				drawFFTSignal(canvas, absSignal);
+    				drawFFTSignal(canvas, absSignal, maxFFTSample);
     				drawCenterFrequencyMarkAndText(canvas,samplingRate/4);
     			}
     		} finally {
@@ -88,11 +86,14 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 	
-	private void drawFFTSignal(Canvas canvas, double[] absSignal) {
+	private void drawFFTSignal(Canvas canvas, double[] absSignal, double maxFFTSample) {
+		int sampleValue, nextSampleValue;
 		Paint p = new Paint();
 		p.setColor(Color.RED);
 		for(int i = 0; i < (absSignal.length-1); i++){
-			canvas.drawLine((i+SHIFT_CONST), ((mHeight-30)-((int)(SCALE_FACTOR*absSignal[i]))), (i+1+SHIFT_CONST), ((mHeight-30)-((int)(SCALE_FACTOR*absSignal[i+1]))), p);
+			sampleValue = (int)(SCALE_FACTOR*(absSignal[i]/maxFFTSample));
+			nextSampleValue = (int)(SCALE_FACTOR*(absSignal[i+1]/maxFFTSample));
+			canvas.drawLine((i+SHIFT_CONST), ((mHeight-30)-sampleValue), (i+1+SHIFT_CONST), ((mHeight-30)-nextSampleValue), p);
 		}
 	}
 
