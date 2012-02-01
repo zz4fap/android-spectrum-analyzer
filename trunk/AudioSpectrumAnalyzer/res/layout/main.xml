@@ -24,11 +24,11 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <com.helloandroid.canvastutorial.Panel
+    <com.spectrumanalyzer.ui.Panel
         android:id="@+id/SurfaceView01"
         android:layout_width="wrap_content"
         android:layout_height="200px" >
-    </com.helloandroid.canvastutorial.Panel>
+    </com.spectrumanalyzer.ui.Panel>
 
     <LinearLayout
         android:id="@+id/center_freq_settings"
