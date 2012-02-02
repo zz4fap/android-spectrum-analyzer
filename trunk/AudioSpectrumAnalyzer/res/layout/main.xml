@@ -14,13 +14,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/peak_freq"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/white_color"/>
         <TextView
             android:id="@+id/txt_peak_freq"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white_color"/>
     </LinearLayout>
 
     <com.spectrumanalyzer.ui.Panel
@@ -38,14 +40,15 @@
             android:id="@+id/center_freq_texts"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:orientation="vertical" >
+            android:orientation="vertical">
             <TextView
                 android:id="@+id/txt_center_freq"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="@string/center_freq"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:textColor="@color/white_color"/>
         </LinearLayout>
 
         <LinearLayout
@@ -58,13 +61,13 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
-                android:text="@string/less_than" />
+                android:text="@string/less_than"/>
             <Button
                 android:id="@+id/btn_shift_center_freq_to_right"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
-                android:text="@string/greater_than" />
+                android:text="@string/greater_than"/>
         </LinearLayout>
     </LinearLayout>
     
@@ -74,14 +77,14 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/sampling_rate"
-        android:textStyle="bold" >
-    </TextView>
+        android:textStyle="bold"
+        android:textColor="@color/white_color"/>
     
     <Spinner
         android:id="@+id/sampling_rate_spinner"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:prompt="@string/choose_sampling_rate" />
+        android:prompt="@string/choose_sampling_rate"/>
     
     <TextView
         android:id="@+id/txt_number_of_fft_points"
@@ -89,13 +92,13 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/number_of_fft_points"
-        android:textStyle="bold" >
-    </TextView>
+        android:textStyle="bold"
+        android:textColor="@color/white_color"/>
 
     <Spinner
         android:id="@+id/number_of_fft_points_spinner"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:prompt="@string/choose_number_of_fft_points" />
+        android:prompt="@string/choose_number_of_fft_points"/>
 
 </LinearLayout>
