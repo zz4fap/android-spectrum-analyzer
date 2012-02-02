@@ -1,0 +1,13 @@
+
+svnadmin create /home/zz4fap/REPOSITORY/SpectrumAnalyser/
+sudo svn import Downloads/CanvasTut2 file:///home/zz4fap/REPOSITORY/SpectrumAnalyser/trunk/CanvasTut2 -m "initial import"
+svn checkout file:///home/zz4fap/REPOSITORY/SpectrumAnalyser/trunk/CanvasTut2
+
+
+svn import ./ https://android-spectrum-analyzer.googlecode.com/svn/trunk/AudioSpectrumAnalyzer -m "initial import"
+
+svn checkout https://android-spectrum-analyzer.googlecode.com/svn/trunk/AudioSpectrumAnalyzer
+
+svn mkdir https://android-spectrum-analyzer.googlecode.com/svn/trunk/AudioSpectrumAnalyzerPOC -m "folder to store proof of concept implementation"
+
+svn import ./ https://android-spectrum-analyzer.googlecode.com/svn/trunk/AudioSpectrumAnalyzerPOC -m "initial import"
