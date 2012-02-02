@@ -8,7 +8,6 @@
         android:id="@+id/peak_freq_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
         android:orientation="horizontal" >
         <TextView
             android:id="@+id/txt_peak_frequency_label"
@@ -27,7 +26,7 @@
     <com.spectrumanalyzer.ui.Panel
         android:id="@+id/SurfaceView01"
         android:layout_width="wrap_content"
-        android:layout_height="200px" >
+        android:layout_height="200dp" >
     </com.spectrumanalyzer.ui.Panel>
 
     <LinearLayout
@@ -59,13 +58,13 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
-                android:text="&lt;" />
+                android:text="@string/less_than" />
             <Button
                 android:id="@+id/btn_shift_center_freq_to_right"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
-                android:text="&gt;" />
+                android:text="@string/greater_than" />
         </LinearLayout>
     </LinearLayout>
     
