@@ -1,56 +1,63 @@
 package fft;
 
 /*************************************************************************
- * Compilation: javac FFT.java Execution: java FFT N Dependencies: Complex.java
- * 
- * Compute the FFT and inverse FFT of a length N complex sequence. Bare bones
- * implementation that runs in O(N log N) time. Our goal is to optimize the
- * clarity of the code, rather than performance.
- * 
- * Limitations ----------- - assumes N is a power of 2
- * 
- * - not the most memory efficient algorithm (because it uses an object type for
- * representing complex numbers and because it re-allocates memory for the
- * sub-array, instead of doing in-place or reusing a single temporary array)
- * 
+ *  Compilation:  javac FFT.java
+ *  Execution:    java FFT N
+ *  Dependencies: Complex.java
+ *
+ *  Compute the FFT and inverse FFT of a length N complex sequence.
+ *  Bare bones implementation that runs in O(N log N) time. Our goal
+ *  is to optimize the clarity of the code, rather than performance.
+ *
+ *  Limitations
+ *  -----------
+ *   -  assumes N is a power of 2
+ *
+ *   -  not the most memory efficient algorithm (because it uses
+ *      an object type for representing complex numbers and because
+ *      it re-allocates memory for the sub-array, instead of doing
+ *      in-place or reusing a single temporary array)
+ *  
  *************************************************************************/
 
 public class FFT {
+	
     // compute the FFT of x[], assuming its length is a power of 2
     public static Complex[] fft(Complex[] x) {
         int N = x.length;
 
         // base case
-        if (N == 1)
-            return new Complex[] { x[0] };
+        if (N == 1) 
+        	return new Complex[] { x[0] };
 
         // radix 2 Cooley-Tukey FFT
-        if (N % 2 != 0) {
-            throw new RuntimeException("N is not a power of 2");
+        if (N % 2 != 0) { 
+        	throw new RuntimeException("N is not a power of 2"); 
         }
 
         // fft of even terms
-        Complex[] even = new Complex[N / 2];
-        for (int k = 0; k < N / 2; k++) {
-            even[k] = x[2 * k];
+        Complex[] even = new Complex[N/2];
+        for (int k = 0; k < N/2; k++) {
+            even[k] = x[2*k];
         }
         Complex[] q = fft(even);
 
         // fft of odd terms
-        Complex[] odd = even; // reuse the array
-        for (int k = 0; k < N / 2; k++) {
-            odd[k] = x[2 * k + 1];
+        Complex[] odd  = even;  // reuse the array
+        for (int k = 0; k < N/2; k++) {
+            odd[k] = x[2*k + 1];
         }
         Complex[] r = fft(odd);
 
         // combine
         Complex[] y = new Complex[N];
-        for (int k = 0; k < N / 2; k++) {
+        for (int k = 0; k < N/2; k++) {
             double kth = -2 * k * Math.PI / N;
             Complex wk = new Complex(Math.cos(kth), Math.sin(kth));
-            y[k] = q[k].plus(wk.times(r[k]));
-            y[k + N / 2] = q[k].minus(wk.times(r[k]));
+            y[k]       = q[k].plus(wk.times(r[k]));
+            y[k + N/2] = q[k].minus(wk.times(r[k]));
         }
+        
         return y;
     }
 
@@ -78,7 +85,6 @@ public class FFT {
         }
 
         return y;
-
     }
 
     // compute the circular convolution of x and y
@@ -86,8 +92,8 @@ public class FFT {
 
         // should probably pad x and y with 0s so that they have same length
         // and are powers of 2
-        if (x.length != y.length) {
-            throw new RuntimeException("Dimensions don't agree");
+        if (x.length != y.length) { 
+        	throw new RuntimeException("Dimensions don't agree"); 
         }
 
         int N = x.length;
@@ -106,21 +112,18 @@ public class FFT {
         return ifft(c);
     }
 
+
     // compute the linear convolution of x and y
     public static Complex[] convolve(Complex[] x, Complex[] y) {
         Complex ZERO = new Complex(0, 0);
 
-        Complex[] a = new Complex[2 * x.length];
-        for (int i = 0; i < x.length; i++)
-            a[i] = x[i];
-        for (int i = x.length; i < 2 * x.length; i++)
-            a[i] = ZERO;
+        Complex[] a = new Complex[2*x.length];
+        for (int i = 0;        i <   x.length; i++) a[i] = x[i];
+        for (int i = x.length; i < 2*x.length; i++) a[i] = ZERO;
 
-        Complex[] b = new Complex[2 * y.length];
-        for (int i = 0; i < y.length; i++)
-            b[i] = y[i];
-        for (int i = y.length; i < 2 * y.length; i++)
-            b[i] = ZERO;
+        Complex[] b = new Complex[2*y.length];
+        for (int i = 0;        i <   y.length; i++) b[i] = y[i];
+        for (int i = y.length; i < 2*y.length; i++) b[i] = ZERO;
 
         return cconvolve(a, b);
     }
@@ -134,15 +137,16 @@ public class FFT {
         }
         System.out.println();
     }
-
+    
     public static void main(String[] args) {
+    	
         int N = Integer.parseInt(args[0]);
         Complex[] x = new Complex[N];
 
         // original data
         for (int i = 0; i < N; i++) {
             x[i] = new Complex(i, 0);
-            x[i] = new Complex(-2 * Math.random() + 1, 0);
+            x[i] = new Complex(-2*Math.random() + 1, 0);
         }
         show(x, "x");
 
