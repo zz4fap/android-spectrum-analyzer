@@ -1,5 +1,7 @@
 package com.spectrumanalyzer.ui;
 
+import log.LOG;
+
 import com.spectrumanalyzer.ui.R;
 
 import dsp.AudioProcessing;
@@ -7,7 +9,6 @@ import dsp.AudioProcessingListener;
 import fft.Constants;
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -37,18 +38,17 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
 		setSpectrumAnalyzer();
 	}
 	
 	@Override
-	protected void onResume(){
+	protected void onResume() {
 		super.onResume();
 		mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
 		AudioProcessing.registerDrawableFFTSamplesAvailableListener(this);
 	}
 	
-	private void setSpectrumAnalyzer(){
+	private void setSpectrumAnalyzer() {
 		// Spinner code with the Available Sampling Frequencies. 
 		fs_spinner = (Spinner) findViewById(R.id.sampling_rate_spinner);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
@@ -122,7 +122,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			
 			switch(pos){
 			case 0:
-				Log.i("ZZ4FAP: ","Automatic");
+				LOG.i("ZZ4FAP: ","Automatic");
 				numberOfFFTPoints = 512;
 				break;
 			case 1:
@@ -161,36 +161,36 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
     	buttonID = v.getId();
     	switch(buttonID){
     	case R.id.btn_shift_center_freq_to_left:
-    		Log.i("ZZ4FAP: ","Shift center freq to left");
+    		LOG.i("ZZ4FAP: ","Shift center freq to left");
     		break;
     		
     	case R.id.btn_shift_center_freq_to_right:
-    		Log.i("ZZ4FAP: ","Shift center freq to right");
+    		LOG.i("ZZ4FAP: ","Shift center freq to right");
     		break;
     		
     	default:
-			Log.e(TAG,"Invalid Option!!!");
+    		LOG.e(TAG,"Invalid Option!!!");
 			break;
     	}
 	}
 	
 	@Override
-	protected void onPause(){
+	protected void onPause() {
 		super.onPause();
 		mAudioCapture.close();
 		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
 	}
 	
-	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints){
-		if(numberOfFFTPoints!=mNumberOfFFTPoints){
+	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints) {
+		if(numberOfFFTPoints!=mNumberOfFFTPoints) {
 			mNumberOfFFTPoints = numberOfFFTPoints;
 			mAudioCapture.close();
 			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
 		}
 	}
 	
-	private void onSamplingRateChanged(double samplingRate){
-		if(samplingRate!=mSampleRateInHz){
+	private void onSamplingRateChanged(double samplingRate) {
+		if(samplingRate!=mSampleRateInHz) {
 			mSampleRateInHz = samplingRate;
 			mAudioCapture.close();
 			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
