@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">Hello World, CanvasTut2Activity!</string>
     <string name="app_name">FFT</string>
     <string name="peak_freq">"Peak Frequency:  "</string>
     <string name="center_freq">Center Frequency</string>
@@ -9,6 +8,9 @@
     <string name="number_of_fft_points">Number of FFT Points</string>
     <string name="choose_sampling_rate">Choose a Sampling Rate</string>
     <string name="choose_number_of_fft_points">Choose the number of FFT Points</string>
+    <string name="less_than">&lt;</string>
+    <string name="greater_than">></string>
+
     <string-array name="frequencies_array">
         <item>8000</item>
         <item>16000</item>
