@@ -8,6 +8,8 @@ import dsp.AudioProcessing;
 import dsp.AudioProcessingListener;
 import fft.Constants;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -30,8 +32,12 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	
 	private AudioProcessing mAudioCapture;
 	
+	private AlertDialog mAlert;
+	
 	private double mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
 	private int mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
+	
+	private static boolean mRunAppInDebugMode;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -39,13 +45,13 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		setSpectrumAnalyzer();
+		mAlert = createAlertDialog();
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
-		AudioProcessing.registerDrawableFFTSamplesAvailableListener(this);
+		mAlert.show();
 	}
 	
 	private void setSpectrumAnalyzer() {
@@ -181,11 +187,32 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
 	}
 	
+	private AlertDialog createAlertDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Run app in debug mode?")
+		.setCancelable(false)
+		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				mRunAppInDebugMode = true;
+				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
+				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
+			}
+		})
+		.setNegativeButton("No", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				mRunAppInDebugMode = false;
+				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,false);
+				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
+			}
+		});
+		return builder.create();
+	}
+	
 	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints) {
 		if(numberOfFFTPoints!=mNumberOfFFTPoints) {
 			mNumberOfFFTPoints = numberOfFFTPoints;
 			mAudioCapture.close();
-			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
+			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
 		}
 	}
 	
@@ -193,7 +220,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		if(samplingRate!=mSampleRateInHz) {
 			mSampleRateInHz = samplingRate;
 			mAudioCapture.close();
-			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints);
+			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
 		}
 	}
 
@@ -205,5 +232,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
         		peak_freq_text_view.setText(Double.toString(mAudioCapture.getPeakFrequency()));
             }
         });
+	}
+	
+	public static boolean getRunAppInDebugMode() {
+		return mRunAppInDebugMode;
 	}
 }

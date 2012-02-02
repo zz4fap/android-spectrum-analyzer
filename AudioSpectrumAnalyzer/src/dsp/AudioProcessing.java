@@ -18,7 +18,8 @@ public class AudioProcessing extends Thread {
 	private AudioRecord mRecorder;
 	private int mMinBufferSize;
 	
-	private boolean stopped;
+	private boolean mStopped;
+	private boolean mRunInDebugMode;
 	
 	private static AudioProcessingListener mListener;
 	
@@ -31,9 +32,17 @@ public class AudioProcessing extends Thread {
 		start();
 	}
 	
+	public AudioProcessing(double sampleRate, int numberOfFFTPoints, boolean runInDebugMode){
+		mSampleRateInHz = sampleRate;
+		mNumberOfFFTPoints = numberOfFFTPoints;
+		mRunInDebugMode = runInDebugMode;
+		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
+		start();
+	}
+	
 	@Override
 	public void run(){
-		if(Constants.DEBUG_MODE){
+		if(mRunInDebugMode){
 			runWithSignalHelper();
 		} else {
 			runWithAudioRecord();
@@ -44,7 +53,7 @@ public class AudioProcessing extends Thread {
 		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 
-		while(!stopped) {
+		while(!mStopped) {
 			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
 			numberOfReadBytes = SignalGenerator.read(tempBuffer,1000,mNumberOfFFTPoints,mSampleRateInHz,true,true);
 			if(numberOfReadBytes > 0){
@@ -68,12 +77,13 @@ public class AudioProcessing extends Thread {
 				(int)mSampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
 				AudioFormat.ENCODING_PCM_16BIT, 10*mMinBufferSize);
 		
-		if(mRecorder==null)
-			return;
+		if(mRecorder==null) {
+			throw new RuntimeException("Audio Recording Device was not initialized!!!");
+		}
 
 		mRecorder.startRecording();
 
-		while(!stopped) {
+		while(!mStopped) {
 			byte tempBuffer[] = new byte[bufferSize];
 			numberOfReadBytes = mRecorder.read(tempBuffer,0,bufferSize);
 			if(numberOfReadBytes > 0){
@@ -104,7 +114,7 @@ public class AudioProcessing extends Thread {
 	}
 	
 	public void close(){ 
-		stopped = true;
+		mStopped = true;
 	}
 	
 	public static void registerDrawableFFTSamplesAvailableListener(AudioProcessingListener listener){
