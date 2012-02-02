@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">FFT</string>
+    <string name="peak_freq">"Peak Frequency:  "</string>
+    <string name="center_freq">Center Frequency</string>
+    <string name="sampling_rate">Sampling Rate</string>
+    <string name="number_of_fft_points">Number of FFT Points</string>
+    <string name="choose_sampling_rate">Choose a Sampling Rate</string>
+    <string name="choose_number_of_fft_points">Choose the number of FFT Points</string>
+    <string name="less_than">&lt;</string>
+    <string name="greater_than">></string>
+
+    <string-array name="frequencies_array">
+        <item>8000</item>
+        <item>16000</item>
+        <item>22050</item>
+        <item>44100</item>
+        <item>48000</item>
+        <item>96000</item>
+    </string-array>
+    <string-array name="fft_points_array">
+        <item>Automatic</item>
+        <item>64</item>
+        <item>128</item>
+        <item>256</item>
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+    </string-array>
+
+</resources>
