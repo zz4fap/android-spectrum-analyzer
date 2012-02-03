@@ -129,4 +129,50 @@ public class SignalHelper {
 			return numberOfBytesToRead;
 		}
 	}
+	
+	public static class DebugSignal {
+		
+		private static double mDebugSignalFrequency = Constants.FREQ_1KHz;
+		private static boolean mAddSecondSinusoid, mAddNoise;
+		
+		public static int read(byte[] audioData, int numberOfBytesToRead, double samplingRate) {
+			
+			double T = (1/samplingRate); // Sample time
+			short s;
+			double temp;
+			
+			for(int i = 0; i < numberOfBytesToRead; i++){
+				double arg = (double)(2*Constants.PI*mDebugSignalFrequency*((double)i*T));
+				
+				// first sinoid
+				temp = (((double)(32767.0F/2))*Math.sin(arg));
+				//second sinoid with 2*frequency
+				if(mAddSecondSinusoid){
+					temp = temp + (((double)(32767.0F/2))*Math.sin(2*arg)); 
+				}
+				// add noise to the signal
+				if(mAddNoise){
+					s = (short)(temp + (double)((32767.0F/4)*Math.random()));
+				} else {
+					s = (short)temp;
+				}
+				audioData[2*i] = (byte)(s & 0xFF);
+				audioData[2*i+1] = (byte)((s >> 8) & 0xFF);
+			}
+			
+			return numberOfBytesToRead;
+		}
+		
+		public static void setDebugSignalFrequency(double freq) {
+			mDebugSignalFrequency = freq;
+		}
+		
+		public static void setAddNoise(boolean addNoise) {
+			mAddNoise = addNoise;
+		}
+		
+		public static void setAddSecondSinusoid(boolean addSinusoid) {
+			mAddSecondSinusoid = addSinusoid;
+		}
+	}
 }

@@ -6,17 +6,27 @@ import com.spectrumanalyzer.ui.R;
 
 import dsp.AudioProcessing;
 import dsp.AudioProcessingListener;
+import dsp.SignalHelper.DebugSignal;
 import fft.Constants;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -30,6 +40,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private Button move_center_freq_to_right_button;
 	private TextView peak_freq_text_view;
 	private Panel spectrum_display;
+	private EditText debug_signal_freq;
 	
 	private AudioProcessing mAudioCapture;
 	
@@ -41,6 +52,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private static boolean mRunAppInDebugMode;
 	
 	private int mOrientation;
+	
+	private static final int SET_FREQ_BUTTON_ID = 0x7f070100;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -49,6 +62,74 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		setContentView(R.layout.main);
 		setSpectrumAnalyzer();
 		mAlert = createAlertDialog();
+	}
+	
+	void setDebugModeOptions() {
+		LinearLayout debug_signal_freq_setting_group = (LinearLayout) findViewById(R.id.debug_signal_freq_setting_group);
+		debug_signal_freq_setting_group.setBackgroundResource(R.drawable.debug_signal_settings_border);
+		
+		LinearLayout debug_signal_freq_setting_text = (LinearLayout) findViewById(R.id.debug_signal_freq_setting_text);
+		
+		TextView debug_signal_freq_title = new TextView(this);
+		debug_signal_freq_title.setText("Debug Signal Settings");
+		debug_signal_freq_title.setGravity(Gravity.CENTER);
+		debug_signal_freq_title.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+		debug_signal_freq_title.setTextColor(Color.WHITE);
+		debug_signal_freq_setting_text.addView(debug_signal_freq_title);
+		
+		LinearLayout debug_signal_freq_setting = (LinearLayout) findViewById(R.id.debug_signal_freq_setting);
+		
+		debug_signal_freq = new EditText(this);
+		debug_signal_freq.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+		debug_signal_freq.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, 1f));
+		debug_signal_freq_setting.addView(debug_signal_freq);
+		
+		Button apply_freq = new Button(this);
+		apply_freq.setId(SET_FREQ_BUTTON_ID);
+		apply_freq.setText("Set Freq");
+		apply_freq.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, 2f));
+		debug_signal_freq_setting.addView(apply_freq);
+		apply_freq.setOnClickListener(this);
+		
+		LinearLayout debug_signal_noise_and_two_senoids_setting = (LinearLayout) findViewById(R.id.debug_signal_noise_and_two_senoids_setting);
+		
+		CheckBox add_noise = new CheckBox(this);
+		add_noise.setTextSize(14);
+		add_noise.setText("Add Noise");
+		add_noise.setTextColor(Color.WHITE);
+		add_noise.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+		add_noise.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
+		debug_signal_noise_and_two_senoids_setting.addView(add_noise);
+		add_noise.setOnClickListener(new OnClickListener() {
+		    public void onClick(View v) {
+		        if (((CheckBox) v).isChecked()) {
+		            LOG.d(TAG,"Add noise");
+		            DebugSignal.setAddNoise(true);
+		        } else {
+		        	LOG.d(TAG,"Don't add noise");
+		        	DebugSignal.setAddNoise(false);
+		        }
+		    }
+		});
+		
+		CheckBox two_sins = new CheckBox(this);
+		two_sins.setTextSize(14);
+		two_sins.setText("Two Sins");
+		two_sins.setTextColor(Color.WHITE);
+		two_sins.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+		two_sins.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
+		debug_signal_noise_and_two_senoids_setting.addView(two_sins);
+		two_sins.setOnClickListener(new OnClickListener() {
+		    public void onClick(View v) {
+		        if (((CheckBox) v).isChecked()) {
+		            LOG.d(TAG,"Add a second sinusoid");
+		            DebugSignal.setAddSecondSinusoid(true);
+		        } else {
+		        	LOG.d(TAG,"Use only one sinusoid");
+		        	DebugSignal.setAddSecondSinusoid(false);
+		        }
+		    }
+		});
 	}
 	
 	@Override
@@ -131,7 +212,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			
 			switch(pos){
 			case 0:
-				LOG.i("ZZ4FAP: ","Automatic");
+				LOG.i(TAG,"Automatic");
 				numberOfFFTPoints = 512;
 				break;
 			case 1:
@@ -170,11 +251,20 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
     	buttonID = v.getId();
     	switch(buttonID){
     	case R.id.btn_shift_center_freq_to_left:
-    		LOG.i("ZZ4FAP: ","Shift center freq to left");
+    		LOG.i(TAG,"Shift center freq to left");
     		break;
     		
     	case R.id.btn_shift_center_freq_to_right:
-    		LOG.i("ZZ4FAP: ","Shift center freq to right");
+    		LOG.i(TAG,"Shift center freq to right");
+    		break;
+    		
+    	case SET_FREQ_BUTTON_ID:
+    		String freq = debug_signal_freq.getText().toString();
+    		if(!"".equals(freq)) {
+    			LOG.i(TAG,"Set frequency button pressed: "+Double.valueOf(freq).doubleValue());
+    			DebugSignal.setDebugSignalFrequency(Double.valueOf(freq).doubleValue());
+    		}
+    		
     		break;
     		
     	default:
@@ -213,6 +303,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 				mRunAppInDebugMode = true;
 				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
+				setDebugModeOptions();
 			}
 		})
 		.setNegativeButton("No", new DialogInterface.OnClickListener() {

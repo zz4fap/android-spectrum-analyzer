@@ -1,8 +1,7 @@
 package dsp;
 
 import log.LOG;
-import dsp.SignalHelper.SignalGenerator;
-import fft.Constants;
+import dsp.SignalHelper.DebugSignal;
 import fft.FFTHelper;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -49,13 +48,13 @@ public class AudioProcessing extends Thread {
 		}
 	}
 	
-	private void runWithSignalHelper(){ // TESTE
+	private void runWithSignalHelper(){ // DEBUG_MODE
 		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 
 		while(!mStopped) {
 			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
-			numberOfReadBytes = SignalGenerator.read(tempBuffer,1000,mNumberOfFFTPoints,mSampleRateInHz,true,true);
+			numberOfReadBytes = DebugSignal.read(tempBuffer,mNumberOfFFTPoints,mSampleRateInHz);
 			if(numberOfReadBytes > 0){
 				if(mFFT!=null){
 					// Calculate captured signal's FFT.
@@ -68,7 +67,7 @@ public class AudioProcessing extends Thread {
 		}
 	}
 	
-	private void runWithAudioRecord(){
+	private void runWithAudioRecord(){ // REAL_MODE - BUILT IN AUDIO DEVICE
 		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 		
