@@ -134,6 +134,7 @@ public class SignalHelper {
 		
 		private static double mDebugSignalFrequency = Constants.FREQ_1KHz;
 		private static boolean mAddSecondSinusoid, mAddNoise;
+		private static int mNoiseLevel;
 		
 		public static int read(byte[] audioData, int numberOfBytesToRead, double samplingRate) {
 			
@@ -152,7 +153,7 @@ public class SignalHelper {
 				}
 				// add noise to the signal
 				if(mAddNoise){
-					s = (short)(temp + (double)((32767.0F/4)*Math.random()));
+					s = (short)(temp + (double)(mNoiseLevel*Math.random()));
 				} else {
 					s = (short)temp;
 				}
@@ -173,6 +174,10 @@ public class SignalHelper {
 		
 		public static void setAddSecondSinusoid(boolean addSinusoid) {
 			mAddSecondSinusoid = addSinusoid;
+		}
+		
+		public static void setNoiseLevel(int noiseLevel) {
+			mNoiseLevel = noiseLevel;
 		}
 	}
 }

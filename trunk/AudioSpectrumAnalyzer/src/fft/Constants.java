@@ -14,5 +14,11 @@ public class Constants {
 
     public final static boolean DEBUG_MODE = true;
     
-    public final static double FREQ_1KHz = 1000.0; 
+    public final static double FREQ_1KHz = 1000.0;
+    
+    public final static int MAX_LEVEL = 32767;
+    
+    public final static int MIN_LEVEL = 0;
+    
+    public final static int DEFAULT_PROGRESS = 0;
 }

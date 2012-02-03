@@ -27,6 +27,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -41,6 +43,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private TextView peak_freq_text_view;
 	private Panel spectrum_display;
 	private EditText debug_signal_freq;
+	private SeekBar noiseLevel;
 	
 	private AudioProcessing mAudioCapture;
 	
@@ -80,13 +83,14 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		LinearLayout debug_signal_freq_setting = (LinearLayout) findViewById(R.id.debug_signal_freq_setting);
 		
 		debug_signal_freq = new EditText(this);
+		debug_signal_freq.setText(Double.toString(Constants.FREQ_1KHz));
 		debug_signal_freq.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 		debug_signal_freq.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, 1f));
 		debug_signal_freq_setting.addView(debug_signal_freq);
 		
 		Button apply_freq = new Button(this);
 		apply_freq.setId(SET_FREQ_BUTTON_ID);
-		apply_freq.setText("Set Freq");
+		apply_freq.setText("Set Freq [Hz]");
 		apply_freq.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, 2f));
 		debug_signal_freq_setting.addView(apply_freq);
 		apply_freq.setOnClickListener(this);
@@ -105,16 +109,18 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		        if (((CheckBox) v).isChecked()) {
 		            LOG.d(TAG,"Add noise");
 		            DebugSignal.setAddNoise(true);
+		            noiseLevel.setEnabled(true);
 		        } else {
 		        	LOG.d(TAG,"Don't add noise");
 		        	DebugSignal.setAddNoise(false);
+		        	noiseLevel.setEnabled(false);;
 		        }
 		    }
 		});
 		
 		CheckBox two_sins = new CheckBox(this);
 		two_sins.setTextSize(14);
-		two_sins.setText("Two Sins");
+		two_sins.setText("Add Sinusoid");
 		two_sins.setTextColor(Color.WHITE);
 		two_sins.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 		two_sins.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
@@ -129,6 +135,34 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		        	DebugSignal.setAddSecondSinusoid(false);
 		        }
 		    }
+		});
+		
+		noiseLevel = new SeekBar(this);
+		noiseLevel.setMax(Constants.MAX_LEVEL);
+		noiseLevel.setProgress(Constants.DEFAULT_PROGRESS);
+		noiseLevel.setEnabled(false);
+		noiseLevel.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, 1f));
+		debug_signal_freq_setting_group.addView(noiseLevel);
+		noiseLevel.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar,
+					int progress, boolean fromUser) {
+				LOG.d(TAG,"Progress: "+progress);
+				DebugSignal.setNoiseLevel(progress);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+
+			}
 		});
 	}
 	
@@ -301,6 +335,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = true;
+				resetDebugSignalSettings();
 				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 				setDebugModeOptions();
@@ -314,6 +349,13 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			}
 		});
 		return builder.create();
+	}
+	
+	private void resetDebugSignalSettings() {
+		DebugSignal.setDebugSignalFrequency(Constants.FREQ_1KHz);
+		DebugSignal.setAddSecondSinusoid(false);
+		DebugSignal.setAddNoise(false);
+		DebugSignal.setNoiseLevel(Constants.MIN_LEVEL);
 	}
 	
 	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints) {
