@@ -30,75 +30,85 @@
         android:layout_width="wrap_content"
         android:layout_height="200dp" >
     </com.spectrumanalyzer.ui.Panel>
-
-    <LinearLayout
-        android:id="@+id/center_freq_settings"
+    
+    <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:layout_height="fill_parent" >
         <LinearLayout
-            android:id="@+id/center_freq_texts"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:orientation="vertical">
+            android:orientation="vertical" >
+            <LinearLayout
+                android:id="@+id/center_freq_settings"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+                <LinearLayout
+                    android:id="@+id/center_freq_texts"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:orientation="vertical" >
+                    <TextView
+                        android:id="@+id/txt_center_freq"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/center_freq"
+                        android:textColor="@color/white_color"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/center_freq_buttons"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" >
+                    <Button
+                        android:id="@+id/btn_shift_center_freq_to_left"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:layout_weight="1"
+                        android:text="@string/less_than" />
+                    <Button
+                        android:id="@+id/btn_shift_center_freq_to_right"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:layout_weight="1"
+                        android:text="@string/greater_than" />
+                </LinearLayout>
+            </LinearLayout>
+
             <TextView
-                android:id="@+id/txt_center_freq"
+                android:id="@+id/txt_sampling_rate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/center_freq"
-                android:textStyle="bold"
-                android:textColor="@color/white_color"/>
-        </LinearLayout>
+                android:text="@string/sampling_rate"
+                android:textColor="@color/white_color"
+                android:textStyle="bold" />
 
-        <LinearLayout
-            android:id="@+id/center_freq_buttons"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" >
-            <Button
-                android:id="@+id/btn_shift_center_freq_to_left"
+            <Spinner
+                android:id="@+id/sampling_rate_spinner"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:text="@string/less_than"/>
-            <Button
-                android:id="@+id/btn_shift_center_freq_to_right"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:text="@string/greater_than"/>
-        </LinearLayout>
-    </LinearLayout>
-    
-	<TextView
-        android:id="@+id/txt_sampling_rate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/sampling_rate"
-        android:textStyle="bold"
-        android:textColor="@color/white_color"/>
-    
-    <Spinner
-        android:id="@+id/sampling_rate_spinner"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:prompt="@string/choose_sampling_rate"/>
-    
-    <TextView
-        android:id="@+id/txt_number_of_fft_points"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/number_of_fft_points"
-        android:textStyle="bold"
-        android:textColor="@color/white_color"/>
+                android:layout_height="wrap_content"
+                android:prompt="@string/choose_sampling_rate" />
 
-    <Spinner
-        android:id="@+id/number_of_fft_points_spinner"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:prompt="@string/choose_number_of_fft_points"/>
+            <TextView
+                android:id="@+id/txt_number_of_fft_points"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/number_of_fft_points"
+                android:textColor="@color/white_color"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/number_of_fft_points_spinner"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:prompt="@string/choose_number_of_fft_points" />
+                        
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>
