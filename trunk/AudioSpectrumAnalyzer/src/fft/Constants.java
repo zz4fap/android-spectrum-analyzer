@@ -13,4 +13,6 @@ public class Constants {
     public final static double PI = 4 * Math.atan((double) 1);
 
     public final static boolean DEBUG_MODE = true;
+    
+    public final static double FREQ_1KHz = 1000.0; 
 }
