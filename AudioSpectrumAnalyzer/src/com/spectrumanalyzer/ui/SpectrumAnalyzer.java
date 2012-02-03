@@ -10,6 +10,7 @@ import fft.Constants;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -38,6 +39,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private int mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
 	
 	private static boolean mRunAppInDebugMode;
+	
+	private int mOrientation;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -185,6 +188,20 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		super.onPause();
 		mAudioCapture.close();
 		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
+	}
+	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+	    super.onConfigurationChanged(newConfig);
+
+	    // Checks the orientation of the screen
+	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+	        LOG.i(TAG,"Orientation changed: LANDSCAPE");
+	        mOrientation = Configuration.ORIENTATION_LANDSCAPE;
+	    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+	    	LOG.i(TAG,"Orientation changed: PORTRAIT");
+	    	mOrientation = Configuration.ORIENTATION_PORTRAIT;
+	    }
 	}
 	
 	private AlertDialog createAlertDialog() {
