@@ -27,8 +27,9 @@ public class FFT {
         int N = x.length;
 
         // base case
-        if (N == 1) 
+        if (N == 1) {
         	return new Complex[] { x[0] };
+        }
 
         // radix 2 Cooley-Tukey FFT
         if (N % 2 != 0) { 

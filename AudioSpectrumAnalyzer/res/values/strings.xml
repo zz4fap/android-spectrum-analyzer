@@ -3,7 +3,8 @@
 
     <string name="app_name">Audio Spectrum Analyzer</string>
     <string name="peak_freq">"Peak Frequency:  "</string>
-    <string name="center_freq">Center Frequency</string>
+    <string name="center_freq">"Center Frequency: "</string>
+    <string name="mark_freq">Mark Frequency</string>
     <string name="sampling_rate">Sampling Rate</string>
     <string name="number_of_fft_points">Number of FFT Points</string>
     <string name="choose_sampling_rate">Choose a Sampling Rate</string>
@@ -21,11 +22,12 @@
         <item>96000 Hz</item>
     </string-array>
     <string-array name="fft_points_array">
-        <item>Automatic</item>
+       	<item>512</item>
+       	<item>16</item>
+       	<item>32</item>
         <item>64</item>
         <item>128</item>
         <item>256</item>
-        <item>512</item>
         <item>1024</item>
         <item>2048</item>
     </string-array>
