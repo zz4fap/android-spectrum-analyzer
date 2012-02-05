@@ -7,39 +7,45 @@ public class FFTHelper {
 	private double mSampleRateInHz;
 	private int mNumberOfFFTPoints;
 	private double mMaxFFTSample;
+	private Complex[] mComplexSignal;
+	private double[] mAbsSignal;
 	
 	public FFTHelper(double sampleRate, int numberOfFFTPoints) {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
+		mComplexSignal = new Complex[numberOfFFTPoints];
+		mAbsSignal = new double[numberOfFFTPoints/2];
 	}
 	
 	public double[] calculateFFT(byte[] signal) {			
 		double temp;
 		Complex[] y;
-		Complex[] complexSignal = new Complex[mNumberOfFFTPoints];
-		double[] absSignal = new double[mNumberOfFFTPoints/2];
 		
-		for(int i = 0; i < mNumberOfFFTPoints; i++){
-			temp = (double)((signal[2*i] & 0xFF) | (signal[2*i+1] << 8)) / 32768.0F;
-			complexSignal[i] = new Complex(temp,0.0);
+		for(int i = 0; i < mNumberOfFFTPoints; i++) {
+			if((2*i+1) < signal.length) {
+				temp = (double)((signal[2*i] & 0xFF) | (signal[2*i+1] << 8)) / 32768.0F;
+				mComplexSignal[i] = new Complex(temp,0.0);
+			} else {
+				mComplexSignal[i] = new Complex(0.0,0.0);
+			}
 		}
 
-		y = FFT.fft(complexSignal);
+		y = FFT.fft(mComplexSignal);
 		
 		mMaxFFTSample = 0.0;
 		mPeakPos = 0;
 		for(int i = 0; i < (mNumberOfFFTPoints/2); i++)
 		{
-			 absSignal[i] = Math.sqrt(Math.pow(y[i].re(), 2) + Math.pow(y[i].im(), 2));
+			mAbsSignal[i] = Math.sqrt(Math.pow(y[i].re(), 2) + Math.pow(y[i].im(), 2));
 			 
-			 if(absSignal[i] > mMaxFFTSample)
+			 if(mAbsSignal[i] > mMaxFFTSample)
 			 {
-				 mMaxFFTSample = absSignal[i];
+				 mMaxFFTSample = mAbsSignal[i];
 				 mPeakPos = i;
 			 }
 		}
 		
-		return absSignal;
+		return mAbsSignal;
 	}
 	
 	public double getPeakFrequency() {

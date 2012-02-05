@@ -1,5 +1,6 @@
 package dsp;
 
+import log.LOG;
 import fft.Constants;
 
 public class SignalHelper {
@@ -68,6 +69,12 @@ public class SignalHelper {
 	
 	public static void setScaleFator(double factor){
 		mScaleFator = factor;
+	}
+	
+	private void printThreadName() {
+		Thread t = Thread.currentThread();
+		String name = t.getName();
+		LOG.i("Thread name=" + name);
 	}
 	
 	public static class SignalGenerator {
