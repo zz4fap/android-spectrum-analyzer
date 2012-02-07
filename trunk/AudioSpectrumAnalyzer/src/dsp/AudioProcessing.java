@@ -24,14 +24,14 @@ public class AudioProcessing extends Thread {
 	
 	private FFTHelper mFFT;
 	
-	public AudioProcessing(double sampleRate, int numberOfFFTPoints){
+	public AudioProcessing(double sampleRate, int numberOfFFTPoints) {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
 		start();
 	}
 	
-	public AudioProcessing(double sampleRate, int numberOfFFTPoints, boolean runInDebugMode){
+	public AudioProcessing(double sampleRate, int numberOfFFTPoints, boolean runInDebugMode) {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
 		mRunInDebugMode = runInDebugMode;
@@ -40,23 +40,23 @@ public class AudioProcessing extends Thread {
 	}
 	
 	@Override
-	public void run(){
-		if(mRunInDebugMode){
+	public void run() {
+		if(mRunInDebugMode) {
 			runWithSignalHelper();
 		} else {
 			runWithAudioRecord();
 		}
 	}
 	
-	private void runWithSignalHelper(){ // DEBUG_MODE
+	private void runWithSignalHelper() { // DEBUG_MODE
 		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 
 		while(!mStopped) {
 			byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
 			numberOfReadBytes = DebugSignal.read(tempBuffer,mNumberOfFFTPoints,mSampleRateInHz);
-			if(numberOfReadBytes > 0){
-				if(mFFT!=null){
+			if(numberOfReadBytes > 0) {
+				if(mFFT!=null) {
 					// Calculate captured signal's FFT.
 					absNormalizedSignal = mFFT.calculateFFT(tempBuffer);
 					notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
@@ -67,7 +67,7 @@ public class AudioProcessing extends Thread {
 		}
 	}
 	
-	private void runWithAudioRecord(){ // REAL_MODE - BUILT IN AUDIO DEVICE
+	private void runWithAudioRecord() { // REAL_MODE - BUILT IN AUDIO DEVICE
 		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
 		double[] absNormalizedSignal;
 		
@@ -85,8 +85,8 @@ public class AudioProcessing extends Thread {
 		while(!mStopped) {
 			byte tempBuffer[] = new byte[bufferSize];
 			numberOfReadBytes = mRecorder.read(tempBuffer,0,bufferSize);
-			if(numberOfReadBytes > 0){
-				if(mFFT!=null){
+			if(numberOfReadBytes > 0) {
+				if(mFFT!=null) {
 					// Calculate captured signal's FFT.
 					absNormalizedSignal = mFFT.calculateFFT(tempBuffer);
 					notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
@@ -100,15 +100,15 @@ public class AudioProcessing extends Thread {
         mRecorder.release();
 	}
 	
-	public double getPeakFrequency(){
+	public double getPeakFrequency() {
 		return mFFT.getPeakFrequency();
 	}
 	
-	public double getPeakFrequency(int[] absSignal){
+	public double getPeakFrequency(int[] absSignal) {
 		return mFFT.getPeakFrequency(absSignal);
 	}
 	
-	public double getMaxFFTSample(){
+	public double getMaxFFTSample() {
 		return mFFT.getMaxFFTSample();
 	}
 	
@@ -116,26 +116,28 @@ public class AudioProcessing extends Thread {
 		return mFFT.getPeakFrequencyPosition();
 	}
 	
-	public void close(){ 
+	public void close() { 
 		mStopped = true;
 	}
 	
-	public static void registerDrawableFFTSamplesAvailableListener(AudioProcessingListener listener){
+	public static void registerDrawableFFTSamplesAvailableListener(AudioProcessingListener listener) {
 		mListener = listener;
 	}
 	
-	public static void unregisterDrawableFFTSamplesAvailableListener(){
+	public static void unregisterDrawableFFTSamplesAvailableListener() {
 		mListener = null;
 	}
 	
-	public void notifyListenersOnFFTSamplesAvailableForDrawing(double[] absSignal){
-		if(mListener!=null) {
+	public void notifyListenersOnFFTSamplesAvailableForDrawing(double[] absSignal) {
+		if(!mStopped) {
 			try { //Work around for a while. when 64 FFT points are chosen the apk gets very slow and as consequence an ANR happens. It happens because this method gets called a lot of times within a second then locking up the UI Thread. Instead of calling this method every time there are samples available, which happens so fast with 64 FFT points, it should be called by the panel itself with a pre-defined frequency.
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			mListener.onDrawableFFTSignalAvailable(absSignal);
+			if(mListener!=null) {
+				mListener.onDrawableFFTSignalAvailable(absSignal);
+			}
 		}
 	}
 }
