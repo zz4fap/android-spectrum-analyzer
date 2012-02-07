@@ -4,7 +4,8 @@
     <string name="app_name">Audio Spectrum Analyzer</string>
     <string name="peak_freq">"Peak Frequency:  "</string>
     <string name="center_freq">"Center Frequency: "</string>
-    <string name="mark_freq">Mark Frequency</string>
+    <string name="mark_freq">Mark Freq.</string>
+    <string name="center_freq_title">Center Freq.</string>
     <string name="sampling_rate">Sampling Rate</string>
     <string name="number_of_fft_points">Number of FFT Points</string>
     <string name="choose_sampling_rate">Choose a Sampling Rate</string>
@@ -12,6 +13,9 @@
     <string name="less_than">&lt;</string>
     <string name="greater_than">&gt;</string>
     <string name="debug_signal_settings">Debug Signal Settings</string>
+    <string name="zoom">Zoom</string>
+    <string name="zoom_in">In</string>
+    <string name="zoom_out">Out</string>
 
     <string-array name="frequencies_array">
         <item>8000 Hz</item>

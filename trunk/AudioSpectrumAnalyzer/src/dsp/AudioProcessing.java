@@ -112,6 +112,10 @@ public class AudioProcessing extends Thread {
 		return mFFT.getMaxFFTSample();
 	}
 	
+	public int getPeakFrequencyPosition() {
+		return mFFT.getPeakFrequencyPosition();
+	}
+	
 	public void close(){ 
 		mStopped = true;
 	}
