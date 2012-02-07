@@ -53,6 +53,10 @@ public class FFTHelper {
 		return mPeakFreq;
 	}
 	
+	public int getPeakFrequencyPosition() {
+		return mPeakPos;
+	}
+	
 	public double getPeakFrequency(int[] absSignal) {
 		
 		int peakPos = 0, max = absSignal[0];

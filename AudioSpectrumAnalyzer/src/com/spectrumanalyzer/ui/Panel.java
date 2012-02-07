@@ -1,6 +1,5 @@
 package com.spectrumanalyzer.ui;
 
-import log.LOG;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -21,7 +20,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 	private boolean isSurfaceCreated;
 	private SurfaceHolder mSurfaceHolder;
 
-	private static final int SHIFT_CONST = 1;
 	private static final int MARK_SIZE = 7;
 	private static final int SPACE_BETWEEN_HORIZONTAL_MARKS = 50;
 	private static final double SCALE_FACTOR = 100.0;
@@ -42,7 +40,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		mDisplay = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	}
 	
-	public void drawSpectrum(double[] absSignal, double samplingRate, int numberOfFFTPoints, double maxFFTSample, int markFreqPos) {
+	public void drawSpectrum(double[] absSignal, double samplingRate, int numberOfFFTPoints, double maxFFTSample, int markFreqPos, int drawableArea) {
     	if(isSurfaceCreated){
     		Canvas canvas;
     		canvas = null;
@@ -51,9 +49,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
     			synchronized (mSurfaceHolder) {
     				canvas.drawColor(Color.BLACK);
     				drawBorderLine(canvas);
-    				drawSpectrumMarks(canvas, samplingRate, numberOfFFTPoints);
-    				drawFFTSignal(canvas, absSignal, numberOfFFTPoints, maxFFTSample);
-    				drawMarkFrequencyAndText(canvas, markFreqPos, samplingRate, numberOfFFTPoints);
+    				drawSpectrumMarks(canvas, samplingRate, drawableArea);
+    				drawFFTSignal(canvas, absSignal, numberOfFFTPoints, maxFFTSample, drawableArea);
+    				drawMarkFrequencyAndText(canvas, markFreqPos, samplingRate, drawableArea);
     			}
     		} finally {
     			// do this in a finally so that if an exception is thrown
@@ -66,49 +64,14 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
     	}
 	}
 	
-	public void drawSpectrumOriginalVersion(double[] absSignal, double samplingRate, int numberOfFFTPoints, double maxFFTSample, int markFreqPos) {
-    	if(isSurfaceCreated){
-    		Canvas canvas;
-    		canvas = null;
-    		try {
-    			canvas = mSurfaceHolder.lockCanvas(null);
-    			synchronized (mSurfaceHolder) {
-    				canvas.drawColor(Color.BLACK);
-    				drawBorderLine(canvas);
-    				drawSpectrumMarksOriginalVersion(canvas, samplingRate, numberOfFFTPoints);
-    				drawFFTSignalOriginalVersion(canvas, absSignal, maxFFTSample);
-    				drawMarkFrequencyAndTextOriginalVersion(canvas, markFreqPos, samplingRate, numberOfFFTPoints);
-    			}
-    		} finally {
-    			// do this in a finally so that if an exception is thrown
-    			// during the above, we don't leave the Surface in an
-    			// inconsistent state
-    			if (canvas != null) {
-    				mSurfaceHolder.unlockCanvasAndPost(canvas);
-    			}
-    		}	
-    	}
-	}
-	
-	private void drawSpectrumMarks(Canvas canvas, double samplingRate, int numberOfFFTPoints) {
+	private void drawSpectrumMarks(Canvas canvas, double samplingRate, int drawableArea) {
 		int freqStep = 1000;
 		Paint p = new Paint();
-		
-		if((double)((samplingRate/2)/freqStep) >= 24.0) {
-			freqStep = 5000;
-		} else if((double)((samplingRate/2)/freqStep) > 12.0) {
-			freqStep = 2000;
-		}
 
 		for(int freq = freqStep; freq <= (int)(samplingRate/2); freq = freq + freqStep)
 		{
-			double point = (double)(((mWidth-2)/2)*freq)/((double)(samplingRate/4));
+			double point = (double)((((double)drawableArea)/2)*freq)/((samplingRate/4));
 			int pointInt = (int)point;
-
-			pointInt = pointInt + SHIFT_CONST;//add 10 pixels in order to make room for first freq string to be totally written on the screen.
-			
-			
-			LOG.d("ZZ4FAP: ","Freq: "+freq+" - pos: "+pointInt);
 
 			p.setColor(Color.GREEN);
 			p.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
@@ -118,78 +81,25 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 			for(int i = 0; i < mHeight; i=i+2*MARK_SIZE) {
 				canvas.drawLine(pointInt,i,pointInt,(i+MARK_SIZE-1), p);
 			}
-			
+					
 			// draw horizontal dashed marks			
 			for(int i = SPACE_BETWEEN_HORIZONTAL_MARKS; i < mHeight; i=i+SPACE_BETWEEN_HORIZONTAL_MARKS) {
-				for(int j = 0; j < mWidth; j=j+2*MARK_SIZE) {
-					canvas.drawLine(j,i,(j+MARK_SIZE-1),i, p);
-				}
-			}
-		}
-	}
-
-	private void drawSpectrumMarksOriginalVersion(Canvas canvas, double samplingRate, int numberOfFFTPoints) {
-		int freqStep = 1000;
-		Paint p = new Paint();
-
-		for(int freq = freqStep; freq <= (int)(samplingRate/2); freq = freq + freqStep)
-		{
-			double point = freq*(((double)numberOfFFTPoints)/(samplingRate));
-			int pointInt = (int)point;
-
-			pointInt = pointInt + SHIFT_CONST;//add 10 pixels in order to make room for first freq string to be totally written on the screen.
-
-			p.setColor(Color.GREEN);
-			p.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-			canvas.drawText(Integer.toString(freq/1000)+" K",(pointInt-8),13,p);// plot frequencies
-			
-			// draw vertical dashed marks			
-			for(int i = 0; i < mHeight; i=i+2*MARK_SIZE) {
-				canvas.drawLine(pointInt,i,pointInt,(i+MARK_SIZE-1), p);
-			}
-			
-			// draw horizontal dashed marks			
-			for(int i = SPACE_BETWEEN_HORIZONTAL_MARKS; i < mHeight; i=i+SPACE_BETWEEN_HORIZONTAL_MARKS) {
-				for(int j = 0; j < mWidth; j=j+2*MARK_SIZE) {
+				for(int j = 0; j < drawableArea; j=j+2*MARK_SIZE) {
 					canvas.drawLine(j,i,(j+MARK_SIZE-1),i, p);
 				}
 			}
 		}
 	}
 	
-	private void drawFFTSignal(Canvas canvas, double[] absSignal, int numberOfFFTPoints, double maxFFTSample) {
+	private void drawFFTSignal(Canvas canvas, double[] absSignal, int numberOfFFTPoints, double maxFFTSample, int drawableArea) {
 		int sampleValue;
 		double pos;
 		Paint p = new Paint();
 		p.setColor(Color.WHITE);
 		for(int i = 0; i < (absSignal.length-1); i++){
 			sampleValue = (int)(SCALE_FACTOR*(absSignal[i]/maxFFTSample));			
-			pos = (double)(((double)(((double)(mWidth-2)/2)*i))/(numberOfFFTPoints/4));
-			canvas.drawLine((int)(pos+SHIFT_CONST),(mHeight-2),(int)(pos+SHIFT_CONST), ((mHeight-2)-sampleValue), p);
-		}
-	}
-	
-	private void drawFFTSignalv1(Canvas canvas, double[] absSignal, int numberOfFFTPoints, double maxFFTSample) {
-		int sampleValue, nextSampleValue;
-		double pos;
-		Paint p = new Paint();
-		p.setColor(Color.WHITE);
-		for(int i = 0; i < (absSignal.length-1); i++){
-			sampleValue = (int)(SCALE_FACTOR*(absSignal[i]/maxFFTSample));
-			nextSampleValue = (int)(SCALE_FACTOR*(absSignal[i+1]/maxFFTSample));
-			pos = (double)(((double)(((double)(mWidth-2)/2)*i))/(numberOfFFTPoints/4));
-			canvas.drawLine((int)(pos+SHIFT_CONST), ((mHeight-2)-sampleValue), (int)(pos+1+SHIFT_CONST), ((mHeight-2)-nextSampleValue), p);
-		}
-	}
-	
-	private void drawFFTSignalOriginalVersion(Canvas canvas, double[] absSignal, double maxFFTSample) {
-		int sampleValue, nextSampleValue;
-		Paint p = new Paint();
-		p.setColor(Color.WHITE);
-		for(int i = 0; i < (absSignal.length-1); i++){
-			sampleValue = (int)(SCALE_FACTOR*(absSignal[i]/maxFFTSample));
-			nextSampleValue = (int)(SCALE_FACTOR*(absSignal[i+1]/maxFFTSample));
-			canvas.drawLine((i+SHIFT_CONST), ((mHeight-2)-sampleValue), (i+1+SHIFT_CONST), ((mHeight-2)-nextSampleValue), p);
+			pos = (double)(((double)(((double)drawableArea/2)*i))/(numberOfFFTPoints/4));
+			canvas.drawLine((int)pos,(mHeight-2),(int)pos, ((mHeight-2)-sampleValue), p);
 		}
 	}
 
@@ -209,31 +119,15 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		canvas.drawText("Center Freq: "+centerFreq+" Hz",(mWidth/2),(mHeight-165),p);
 	}
 	
-	private void drawMarkFrequencyAndText(Canvas canvas, int markFreqPos, double samplingRate, int numberOfFFTPoints) {
-		double pos;
+	private void drawMarkFrequencyAndText(Canvas canvas, int markPixelPos, double samplingRate, int drawableArea) {
 		Paint p = new Paint();
 		p.setColor(Color.WHITE);
 		p.setTextSize(12);
 		p.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-		double markFreq = (double)markFreqPos*(samplingRate/numberOfFFTPoints);
-		canvas.drawText("Mark Freq: "+markFreq+" Hz",(mWidth/2),(mHeight-165),p);
-		
-		pos = (double)(((double)(((double)(mWidth-2)/2)*markFreqPos))/(numberOfFFTPoints/4));
-		
+		double markFreq = (double)((double)(markPixelPos*(samplingRate/4))/(double)(drawableArea/2));
+		canvas.drawText("Mark Freq: "+markFreq+" Hz",(mWidth/2),(mHeight-165),p);	
 		p.setColor(Color.GREEN);
-		canvas.drawLine((int)(pos+SHIFT_CONST),0,(int)(pos+SHIFT_CONST),(mHeight-1),p);
-	}
-	
-	private void drawMarkFrequencyAndTextOriginalVersion(Canvas canvas, int markFreqPos, double samplingRate, int numberOfFFTPoints) {
-		Paint p = new Paint();
-		p.setColor(Color.WHITE);
-		p.setTextSize(12);
-		p.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-		double markFreq = (double)markFreqPos*(samplingRate/numberOfFFTPoints);
-		canvas.drawText("Mark Freq: "+markFreq+" Hz",(mWidth/2),(mHeight-165),p);
-		
-		p.setColor(Color.GREEN);
-		canvas.drawLine((markFreqPos+SHIFT_CONST),0,(markFreqPos+SHIFT_CONST),(mHeight-1),p);
+		canvas.drawLine(markPixelPos,0,markPixelPos,(mHeight-1),p);
 	}
 	
 	private void drawBorderLine(Canvas canvas) {
@@ -249,7 +143,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		mWidth = getWidth();
 		mHeight = getHeight();
 		mOrientation = mDisplay.getOrientation();
-		LOG.i("ZZ4FAP: ","Width: "+getWidth()+" - Height: "+getHeight());
 	}
 
 	@Override
@@ -258,7 +151,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		mWidth = width;
 		mHeight = height;
 		mOrientation = mDisplay.getOrientation();
-		LOG.i("ZZ4FAP: ","Surface Changed: new width: "+width+" - new height: "+height);
 	}
 	
 	@Override

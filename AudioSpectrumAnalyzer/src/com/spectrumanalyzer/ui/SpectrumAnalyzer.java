@@ -40,6 +40,10 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private Spinner fft_spinner;
 	private Button move_mark_freq_to_left_button;
 	private Button move_mark_freq_to_right_button;
+	private Button move_center_freq_to_left_button;
+	private Button move_center_freq_to_right_button;
+	private Button zoom_in_button;
+	private Button zoom_out_button;
 	private TextView peak_freq_text_view;
 	private TextView center_freq_text_view;
 	private Panel spectrum_display;
@@ -56,8 +60,12 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private static boolean mRunAppInDebugMode;
 	
 	private int mOrientation;
-	
 	private int mMarkFreqPos;
+	
+	private int mZoomCounter = 5;
+	private double[] mZoomValues = {1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 1, 2, 3, 4, 5, 6};
+	private int mPanelWidth;
+	private int mDrawableArea;
 	
 	private static final int SET_FREQ_BUTTON_ID = 0x7f070100;
 
@@ -66,8 +74,14 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		setSpectrumAnalyzer();
+		setSpectrumAnalyzer();;
 		mAlert = createAlertDialog();
+	}
+	
+	private void setPanelSettings() {
+		mPanelWidth = spectrum_display.getWidth();
+		mDrawableArea = mPanelWidth;
+		mMarkFreqPos = mDrawableArea/2;
 	}
 	
 	void setDebugModeOptions() {
@@ -191,11 +205,23 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		fft_spinner.setAdapter(adapter);
 		fft_spinner.setOnItemSelectedListener(new OnNumberOfFFTPointsItemSelectedListener());
 		
-		//center frequency buttons
+		//mark frequency buttons
 		move_mark_freq_to_left_button = (Button) findViewById(R.id.btn_shift_mark_freq_to_left);
 		move_mark_freq_to_left_button.setOnClickListener(this);
 		move_mark_freq_to_right_button = (Button) findViewById(R.id.btn_shift_mark_freq_to_right);
 		move_mark_freq_to_right_button.setOnClickListener(this);
+		
+		// Center frequency buttons
+		move_center_freq_to_left_button = (Button) findViewById(R.id.btn_shift_center_freq_to_left);
+		move_center_freq_to_left_button.setOnClickListener(this);
+		move_center_freq_to_right_button = (Button) findViewById(R.id.btn_shift_center_freq_to_right);
+		move_center_freq_to_right_button.setOnClickListener(this);
+		
+		// zoom in and out buttons
+		zoom_in_button = (Button) findViewById(R.id.btn_zoom_in);
+		zoom_in_button.setOnClickListener(this);
+		zoom_out_button = (Button) findViewById(R.id.btn_zoom_out);
+		zoom_out_button.setOnClickListener(this);
 		
 		// get text view which is used to display the current peak frequency.
 		peak_freq_text_view = (TextView) findViewById(R.id.txt_peak_freq);
@@ -288,41 +314,63 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 
 	@Override
 	public void onClick(View v) {
-    	int buttonID;
-    	buttonID = v.getId();
-    	switch(buttonID){
-    	case R.id.btn_shift_mark_freq_to_left:
-    		LOG.i(TAG,"Shift mark freq to left");
-    		if(mMarkFreqPos == 0) {
-    			mMarkFreqPos = mNumberOfFFTPoints/2;
-    			
-    		} else {
-    			mMarkFreqPos--;
-    		}
-    		break;
-    		
-    	case R.id.btn_shift_mark_freq_to_right:
-    		LOG.i(TAG,"Shift mark freq to right");
-    		if(mMarkFreqPos == mNumberOfFFTPoints/2) {
-    			mMarkFreqPos = 0;
-    			
-    		} else {
-    			mMarkFreqPos++;
-    		}
-    		break;
-    		
-    	case SET_FREQ_BUTTON_ID:
-    		String freq = debug_signal_freq.getText().toString();
-    		if(!"".equals(freq)) {
-    			LOG.i(TAG,"Set frequency button pressed: "+Double.valueOf(freq).doubleValue());
-    			DebugSignal.setDebugSignalFrequency(Double.valueOf(freq).doubleValue());
-    		}
-    		break;
-    		
-    	default:
-    		LOG.e(TAG,"Invalid Option!!!");
+		int buttonID;
+		buttonID = v.getId();
+		switch(buttonID) {
+		case R.id.btn_shift_mark_freq_to_left:
+			LOG.i(TAG,"Shift mark freq to left");
+			if(mMarkFreqPos == 0) {
+				mMarkFreqPos = mDrawableArea;
+			} else {
+				mMarkFreqPos--;
+			}
 			break;
-    	}
+
+		case R.id.btn_shift_mark_freq_to_right:
+			LOG.i(TAG,"Shift mark freq to right");
+			if(mMarkFreqPos == mDrawableArea) {
+				mMarkFreqPos = 0;
+			} else {
+				mMarkFreqPos++;
+			}
+			break;
+
+		case SET_FREQ_BUTTON_ID:
+			String freq = debug_signal_freq.getText().toString();
+			if(!"".equals(freq)) {
+				LOG.i(TAG,"Set frequency button pressed: "+Double.valueOf(freq).doubleValue());
+				DebugSignal.setDebugSignalFrequency(Double.valueOf(freq).doubleValue());
+			}
+			break;
+
+		case R.id.btn_shift_center_freq_to_left:
+			LOG.i(TAG,"Shift center freq to right");
+			break;
+
+		case R.id.btn_shift_center_freq_to_right:
+			LOG.i(TAG,"Shift center freq to right");
+			break;
+
+		case R.id.btn_zoom_in:
+			LOG.i(TAG,"Zoom in");
+			if(mZoomCounter < 10) {
+				mDrawableArea = (int)(mPanelWidth*mZoomValues[++mZoomCounter]);
+				mMarkFreqPos = mDrawableArea/2;
+			}
+			break;
+
+		case R.id.btn_zoom_out:
+			LOG.i(TAG,"Zoom out");
+			if(mZoomCounter > 0) {
+				mDrawableArea = (int)((double)mPanelWidth*mZoomValues[--mZoomCounter]);
+				mMarkFreqPos = mDrawableArea/2;
+			}
+			break;
+
+		default:
+			LOG.e(TAG,"Invalid Option!!!");
+			break;
+		}
 	}
 	
 	@Override
@@ -335,6 +383,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 	    super.onConfigurationChanged(newConfig);
+	    
+		mPanelWidth = spectrum_display.getWidth();
 
 	    // Checks the orientation of the screen
 	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -354,6 +404,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = true;
 				resetDebugSignalSettings();
+				setPanelSettings();
 				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 				setDebugModeOptions();
@@ -362,6 +413,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		.setNegativeButton("No", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = false;
+				setPanelSettings();
 				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,false);
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 			}
@@ -379,7 +431,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private void onNumberOfFFTPointsChanged(int numberOfFFTPoints) {
 		if(numberOfFFTPoints!=mNumberOfFFTPoints) {
 			mNumberOfFFTPoints = numberOfFFTPoints;
-			mMarkFreqPos = numberOfFFTPoints/4;
+			mMarkFreqPos = mDrawableArea/2;
 			mAudioCapture.close();
 			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
 		}
@@ -388,6 +440,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private void onSamplingRateChanged(double samplingRate) {
 		if(samplingRate!=mSampleRateInHz) {
 			mSampleRateInHz = samplingRate;
+			mMarkFreqPos = mDrawableArea/2;
 			mAudioCapture.close();
 			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
 		}
@@ -397,9 +450,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	public void onDrawableFFTSignalAvailable(final double[] absSignal) {
 		SpectrumAnalyzer.this.runOnUiThread(new Runnable() {
             public void run() {
-        		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample(),mMarkFreqPos);
-        		//spectrum_display.drawSpectrumOriginalVersion(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample(),mMarkFreqPos);
-        		peak_freq_text_view.setText(Double.toString(mAudioCapture.getPeakFrequency())+" Hz");
+        		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample(),mMarkFreqPos, mDrawableArea);
+        		peak_freq_text_view.setText(Double.toString((mAudioCapture.getPeakFrequencyPosition()*(mSampleRateInHz/4))/(double)(mNumberOfFFTPoints/4))+" Hz");
         		center_freq_text_view.setText(Double.toString(mSampleRateInHz/4)+" Hz");
             }
         });
