@@ -66,6 +66,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private double[] mZoomValues = {1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 1, 2, 3, 4, 5, 6};
 	private int mPanelWidth;
 	private int mDrawableArea;
+	private int mPointToStartDrawing;
 	
 	private static final int SET_FREQ_BUTTON_ID = 0x7f070100;
 
@@ -80,7 +81,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	
 	private void setPanelSettings() {
 		mPanelWidth = spectrum_display.getWidth();
-		mDrawableArea = mPanelWidth;
+		mDrawableArea = mPanelWidth-1;
 		mMarkFreqPos = mDrawableArea/2;
 	}
 	
@@ -344,11 +345,17 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			break;
 
 		case R.id.btn_shift_center_freq_to_left:
-			LOG.i(TAG,"Shift center freq to right");
+			LOG.i(TAG,"Shift center freq to left");
+			if(mPointToStartDrawing > 0) {
+				mPointToStartDrawing--;
+			}
 			break;
 
 		case R.id.btn_shift_center_freq_to_right:
 			LOG.i(TAG,"Shift center freq to right");
+			if(mPointToStartDrawing < mDrawableArea) {
+				mPointToStartDrawing++;
+			}
 			break;
 
 		case R.id.btn_zoom_in:
@@ -450,9 +457,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	public void onDrawableFFTSignalAvailable(final double[] absSignal) {
 		SpectrumAnalyzer.this.runOnUiThread(new Runnable() {
             public void run() {
-        		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample(),mMarkFreqPos, mDrawableArea);
+        		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample(),mMarkFreqPos, mDrawableArea, mPointToStartDrawing);
         		peak_freq_text_view.setText(Double.toString((mAudioCapture.getPeakFrequencyPosition()*(mSampleRateInHz/4))/(double)(mNumberOfFFTPoints/4))+" Hz");
-        		center_freq_text_view.setText(Double.toString(mSampleRateInHz/4)+" Hz");
+        		center_freq_text_view.setText(Double.toString((mSampleRateInHz/4)+((mPointToStartDrawing*(mSampleRateInHz/4))/(double)(mNumberOfFFTPoints/4)))+" Hz");
             }
         });
 	}
