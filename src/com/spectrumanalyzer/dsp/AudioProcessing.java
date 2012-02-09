@@ -18,6 +18,7 @@ public class AudioProcessing extends Thread {
 	
 	private AudioRecord mRecorder;
 	private int mMinBufferSize;
+	private int mBufferSize;
 	
 	private boolean mStopped;
 	private boolean mRunInDebugMode;
@@ -29,6 +30,7 @@ public class AudioProcessing extends Thread {
 	public AudioProcessing(double sampleRate, int numberOfFFTPoints) {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
+		mBufferSize = 2*mNumberOfFFTPoints;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
 		start();
 	}
@@ -36,6 +38,7 @@ public class AudioProcessing extends Thread {
 	public AudioProcessing(double sampleRate, int numberOfFFTPoints, boolean runInDebugMode) {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
+		mBufferSize = 2*mNumberOfFFTPoints;
 		mRunInDebugMode = runInDebugMode;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
 		start();
@@ -51,12 +54,12 @@ public class AudioProcessing extends Thread {
 	}
 	
 	private void runWithSignalHelper() { // DEBUG_MODE - simulated sinusoids signal
-		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
+		int numberOfReadBytes = 0;
 		double[] absNormalizedSignal;
-		byte tempBuffer[] = new byte[bufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
+		byte tempBuffer[] = new byte[mBufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
 
 		while(!mStopped) {
-			numberOfReadBytes = DebugSignal.read(tempBuffer,mNumberOfFFTPoints,mSampleRateInHz);
+			numberOfReadBytes = DebugSignal.read(tempBuffer,mBufferSize,mSampleRateInHz);
 			if(numberOfReadBytes > 0) {
 				if(mFFT!=null) {
 					// Calculate captured signal's FFT.
@@ -70,9 +73,9 @@ public class AudioProcessing extends Thread {
 	}
 	
 	private void runWithAudioRecord() { // REAL_MODE - BUILT IN AUDIO DEVICE
-		int numberOfReadBytes = 0, bufferSize = 2*mNumberOfFFTPoints;
+		int numberOfReadBytes = 0;
 		double[] absNormalizedSignal;
-		byte tempBuffer[] = new byte[bufferSize];
+		byte tempBuffer[] = new byte[mBufferSize];
 		
 		mMinBufferSize = AudioRecord.getMinBufferSize((int)mSampleRateInHz,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
 		mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
@@ -86,7 +89,7 @@ public class AudioProcessing extends Thread {
 		mRecorder.startRecording();
 
 		while(!mStopped) {
-			numberOfReadBytes = mRecorder.read(tempBuffer,0,bufferSize);
+			numberOfReadBytes = mRecorder.read(tempBuffer,0,mBufferSize);
 			if(numberOfReadBytes > 0) {
 				if(mFFT!=null) {
 					// Calculate captured signal's FFT.

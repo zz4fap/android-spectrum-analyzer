@@ -152,12 +152,12 @@ public class SignalHelper {
 			short s;
 			double temp;
 			
-			for(int i = 0; i < numberOfBytesToRead; i++) {
+			for(int i = 0; i < (numberOfBytesToRead/2); i++) {
 				double arg = (double)(2*Constants.PI*mDebugSignalFrequency*((double)i*T));
 				
-				// first sinoid
+				// first sinusoids
 				temp = (((double)(32767.0F/2))*Math.sin(arg));
-				//second sinoid with 2*frequency
+				//second sinusoids with 2*frequency
 				if(mAddSecondSinusoid) {
 					temp = temp + (((double)(32767.0F/2))*Math.sin(2*arg)); 
 				}
