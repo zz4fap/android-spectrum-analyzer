@@ -17,12 +17,12 @@ public class FFTHelper {
 		mAbsSignal = new double[numberOfFFTPoints/2];
 	}
 	
-	public double[] calculateFFT(byte[] signal) {			
+	public double[] calculateFFT(byte[] signal, int numberOfReadBytes) {			
 		double temp;
 		Complex[] y;
 		
 		for(int i = 0; i < mNumberOfFFTPoints; i++) {
-			if((2*i+1) < signal.length) {
+			if((2*i+1) < numberOfReadBytes) {
 				temp = (double)((signal[2*i] & 0xFF) | (signal[2*i+1] << 8)) / 32768.0F;
 				mComplexSignal[i] = new Complex(temp,0.0);
 			} else {
