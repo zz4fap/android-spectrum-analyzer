@@ -1,5 +1,7 @@
 package com.spectrumanalyzer.dsp;
 
+import java.util.Random;
+
 import com.spectrumanalyzer.log.LOG;
 import com.spectrumanalyzer.fft.Constants;
 
@@ -142,6 +144,7 @@ public class SignalHelper {
 		private static double mDebugSignalFrequency = Constants.FREQ_1KHz;
 		private static boolean mAddSecondSinusoid, mAddNoise;
 		private static int mNoiseLevel;
+		private static Random mRandom = new Random();
 		
 		public static int read(byte[] audioData, int numberOfBytesToRead, double samplingRate) {
 			
@@ -149,18 +152,18 @@ public class SignalHelper {
 			short s;
 			double temp;
 			
-			for(int i = 0; i < numberOfBytesToRead; i++){
+			for(int i = 0; i < numberOfBytesToRead; i++) {
 				double arg = (double)(2*Constants.PI*mDebugSignalFrequency*((double)i*T));
 				
 				// first sinoid
 				temp = (((double)(32767.0F/2))*Math.sin(arg));
 				//second sinoid with 2*frequency
-				if(mAddSecondSinusoid){
+				if(mAddSecondSinusoid) {
 					temp = temp + (((double)(32767.0F/2))*Math.sin(2*arg)); 
 				}
 				// add noise to the signal
-				if(mAddNoise){
-					s = (short)(temp + (double)(mNoiseLevel*Math.random()));
+				if(mAddNoise) {
+					s = (short)(temp + (double)(mNoiseLevel*mRandom.nextGaussian()));
 				} else {
 					s = (short)temp;
 				}
