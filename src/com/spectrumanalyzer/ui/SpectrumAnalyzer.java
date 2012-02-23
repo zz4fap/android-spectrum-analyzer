@@ -408,7 +408,11 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 				mRunAppInDebugMode = true;
 				resetDebugSignalSettings();
 				setPanelSettings();
-				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
+				try {
+					mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 				setDebugModeOptions();
 			}
@@ -417,7 +421,11 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = false;
 				setPanelSettings();
-				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,false);
+				try {
+					mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,false);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 			}
 		});
@@ -436,7 +444,11 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			mNumberOfFFTPoints = numberOfFFTPoints;
 			mMarkFreqPos = mDrawableArea/2;
 			mAudioCapture.close();
-			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
+			try {
+				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -445,7 +457,11 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			mSampleRateInHz = samplingRate;
 			mMarkFreqPos = mDrawableArea/2;
 			mAudioCapture.close();
-			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
+			try {
+				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
