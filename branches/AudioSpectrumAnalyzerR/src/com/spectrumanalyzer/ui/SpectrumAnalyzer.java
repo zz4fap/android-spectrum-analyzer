@@ -411,7 +411,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 				try {
 					mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
 				} catch (Exception e) {
+					mAudioCapture = null;
 					e.printStackTrace();
+					showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
 				}
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 				setDebugModeOptions();
@@ -424,7 +426,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 				try {
 					mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,false);
 				} catch (Exception e) {
+					mAudioCapture = null;
 					e.printStackTrace();
+					showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
 				}
 				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
 			}
@@ -447,7 +451,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			try {
 				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
 			} catch (Exception e) {
+				mAudioCapture = null;
 				e.printStackTrace();
+				showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
 			}
 		}
 	}
@@ -460,7 +466,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			try {
 				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
 			} catch (Exception e) {
+				mAudioCapture = null;
 				e.printStackTrace();
+				showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
 			}
 		}
 	}
@@ -477,5 +485,16 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		
 	public static boolean getRunAppInDebugMode() {
 		return mRunAppInDebugMode;
+	}
+	
+	public void showErrorDialog(final String title, final String message) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(message)
+		.setTitle(title)
+		.setCancelable(false)
+		.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+			}}).create().show();
 	}
 }
