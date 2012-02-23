@@ -7,7 +7,6 @@ import com.spectrumanalyzer.dsp.SignalHelper.DebugSignal;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.util.Log;
 
 public class AudioProcessing extends Thread {
 	
@@ -135,11 +134,6 @@ public class AudioProcessing extends Thread {
 	
 	public void notifyListenersOnFFTSamplesAvailableForDrawing(double[] absSignal) {
 		if(!mStopped) {
-			try { //Work around for a while. when 64 FFT points are chosen the apk gets very slow and as consequence an ANR happens. It happens because this method gets called a lot of times within a second then locking up the UI Thread. Instead of calling this method every time there are samples available, which happens so fast with 64 FFT points, it should be called by the panel itself with a pre-defined frequency.
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 			if(mListener!=null) {
 				mListener.onDrawableFFTSignalAvailable(absSignal);
 			}
