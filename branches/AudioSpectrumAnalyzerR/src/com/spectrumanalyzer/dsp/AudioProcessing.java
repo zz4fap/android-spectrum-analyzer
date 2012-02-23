@@ -26,20 +26,32 @@ public class AudioProcessing extends Thread {
 	
 	private FFTHelper mFFT;
 	
-	public AudioProcessing(double sampleRate, int numberOfFFTPoints) {
+	private AudioProcessingException mAudioProcessingException;
+	
+	public AudioProcessing(double sampleRate, int numberOfFFTPoints) throws Exception {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
 		mBufferSize = 2*mNumberOfFFTPoints;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
+		if(!getInstanceOfAudioRecord()) {
+			LOG.e(TAG,mAudioProcessingException.getMessage());
+			throw mAudioProcessingException;
+		}
 		start();
 	}
 	
-	public AudioProcessing(double sampleRate, int numberOfFFTPoints, boolean runInDebugMode) {
+	public AudioProcessing(double sampleRate, int numberOfFFTPoints, boolean runInDebugMode) throws Exception {
 		mSampleRateInHz = sampleRate;
 		mNumberOfFFTPoints = numberOfFFTPoints;
 		mBufferSize = 2*mNumberOfFFTPoints;
 		mRunInDebugMode = runInDebugMode;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
+		if(mRunInDebugMode) {
+			if(!getInstanceOfAudioRecord()) {
+				LOG.e(TAG,mAudioProcessingException.getMessage());
+				throw mAudioProcessingException;
+			}
+		}
 		start();
 	}
 	
@@ -71,19 +83,30 @@ public class AudioProcessing extends Thread {
 		}
 	}
 	
+	private boolean getInstanceOfAudioRecord() {
+		mMinBufferSize = AudioRecord.getMinBufferSize((int)mSampleRateInHz,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
+		if(mMinBufferSize < 0) {
+			mAudioProcessingException = new AudioProcessingException("Error when getting Minimum buffer: "+mMinBufferSize);
+			return false;
+		}
+		
+		try {
+			mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+					(int)mSampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
+					AudioFormat.ENCODING_PCM_16BIT, 10*mMinBufferSize);
+		} catch(IllegalArgumentException e) {
+			e.printStackTrace();
+			mAudioProcessingException =  new AudioProcessingException("Audio Recording device was not initialized!!!");
+			return false;
+		}
+		
+		return true;
+	}
+	
 	private void runWithAudioRecord() { // REAL_MODE - BUILT IN AUDIO DEVICE
 		int numberOfReadBytes = 0;
 		double[] absNormalizedSignal;
 		byte tempBuffer[] = new byte[mBufferSize];
-		
-		mMinBufferSize = AudioRecord.getMinBufferSize((int)mSampleRateInHz,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
-		mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-				(int)mSampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
-				AudioFormat.ENCODING_PCM_16BIT, 10*mMinBufferSize);
-		
-		if(mRecorder==null) {
-			throw new RuntimeException("Audio Recording Device was not initialized!!!");
-		}
 
 		mRecorder.startRecording();
 
@@ -139,4 +162,18 @@ public class AudioProcessing extends Thread {
 			}
 		}
 	}
+	
+	public class AudioProcessingException extends Exception {
+
+		private static final long serialVersionUID = 990899067193042344L;
+
+		public AudioProcessingException(String msg) {
+			super(msg); 
+		}
+		
+		public AudioProcessingException(String msg, Throwable t){ 
+			super(msg,t); 
+		} 
+	}
+	
 }
