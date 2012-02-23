@@ -1,6 +1,4 @@
-TODO List
-
-= Add below actions to our TODO List, any improvements ou thoughts you may have =
+Add below, actions to our TODO List, any improvements ou thoughts you may have
+= TODO List =
 
 1 - Fix the way it displays center freq and mark freq to indicate the frequency of the pixel instead of the freq od the FFT Sample.
-
