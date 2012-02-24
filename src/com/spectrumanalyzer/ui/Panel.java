@@ -64,6 +64,27 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
     	}
 	}
 	
+	public void drawEmptySpectrum(double samplingRate, int markFreqPos, int drawableArea, int pointToStartDrawing) {
+    	if(isSurfaceCreated){
+    		Canvas canvas;
+    		canvas = null;
+    		try {
+    			canvas = mSurfaceHolder.lockCanvas(null);
+    			synchronized (mSurfaceHolder) {
+    				canvas.drawColor(Color.BLACK);
+    				drawBorderLine(canvas);
+    			}
+    		} finally {
+    			// do this in a finally so that if an exception is thrown
+    			// during the above, we don't leave the Surface in an
+    			// inconsistent state
+    			if (canvas != null) {
+    				mSurfaceHolder.unlockCanvasAndPost(canvas);
+    			}
+    		}	
+    	}
+	}
+	
 	private void drawSpectrumMarks(Canvas canvas, double samplingRate, int drawableArea, int pointToStartDrawing) {
 		int freqStep = 1000;
 		Paint p = new Paint();
