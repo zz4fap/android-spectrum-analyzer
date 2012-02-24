@@ -379,7 +379,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	@Override
 	protected void onPause() {
 		super.onPause();
-		mAudioCapture.close();
+		if(mAudioCapture!=null) {
+			mAudioCapture.close();
+		}
 		AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
 	}
 	
@@ -399,6 +401,29 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	    }
 	}
 	
+	private boolean getAudioProcessingInstance() {
+		try {
+			if(mAudioCapture!=null) {
+				mAudioCapture.close();
+				AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
+				// Wait for thread to finish before instantiating a new Audio Processing object.
+				if(mAudioCapture.isAlive()) {
+					mAudioCapture.join();
+				}
+			}
+			mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
+			AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
+		} catch (Exception e) {
+			mAudioCapture = null;
+			AudioProcessing.unregisterDrawableFFTSamplesAvailableListener();
+			e.printStackTrace();
+			showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
+			return false;
+		}
+		
+		return true;
+	}
+	
 	private AlertDialog createAlertDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage("Run app in debug mode?")
@@ -408,14 +433,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 				mRunAppInDebugMode = true;
 				resetDebugSignalSettings();
 				setPanelSettings();
-				try {
-					mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,true);
-				} catch (Exception e) {
-					mAudioCapture = null;
-					e.printStackTrace();
-					showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
-				}
-				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
+				getAudioProcessingInstance();
 				setDebugModeOptions();
 			}
 		})
@@ -423,14 +441,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = false;
 				setPanelSettings();
-				try {
-					mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,false);
-				} catch (Exception e) {
-					mAudioCapture = null;
-					e.printStackTrace();
-					showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
-				}
-				AudioProcessing.registerDrawableFFTSamplesAvailableListener(SpectrumAnalyzer.this);
+				getAudioProcessingInstance();
 			}
 		});
 		return builder.create();
@@ -447,14 +458,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		if(numberOfFFTPoints!=mNumberOfFFTPoints) {
 			mNumberOfFFTPoints = numberOfFFTPoints;
 			mMarkFreqPos = mDrawableArea/2;
-			mAudioCapture.close();
-			try {
-				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
-			} catch (Exception e) {
-				mAudioCapture = null;
-				e.printStackTrace();
-				showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
-			}
+			getAudioProcessingInstance();
 		}
 	}
 	
@@ -462,14 +466,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		if(samplingRate!=mSampleRateInHz) {
 			mSampleRateInHz = samplingRate;
 			mMarkFreqPos = mDrawableArea/2;
-			mAudioCapture.close();
-			try {
-				mAudioCapture = new AudioProcessing(mSampleRateInHz,mNumberOfFFTPoints,mRunAppInDebugMode);
-			} catch (Exception e) {
-				mAudioCapture = null;
-				e.printStackTrace();
-				showErrorDialog("Error",e.getMessage()+"\n Try a different configuration.");
-			}
+			getAudioProcessingInstance();
 		}
 	}
 	
@@ -494,7 +491,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		.setCancelable(false)
 		.setNeutralButton("OK", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
-
+				spectrum_display.drawEmptySpectrum(mSampleRateInHz, mMarkFreqPos, mDrawableArea, mPointToStartDrawing);
 			}}).create().show();
 	}
 }
