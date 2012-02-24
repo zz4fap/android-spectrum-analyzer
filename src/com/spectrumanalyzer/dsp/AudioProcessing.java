@@ -11,22 +11,25 @@ import android.media.MediaRecorder;
 public class AudioProcessing extends Thread {
 	
 	private static final String TAG = AudioProcessing.class.getSimpleName();
-	
+
 	private double mSampleRateInHz;
 	private int mNumberOfFFTPoints;
-	
+
 	private AudioRecord mRecorder;
 	private int mMinBufferSize;
 	private int mBufferSize;
-	
+
 	private boolean mStopped;
 	private boolean mRunInDebugMode;
-	
+
 	private static AudioProcessingListener mListener;
-	
+
 	private FFTHelper mFFT;
-	
+
 	private AudioProcessingException mAudioProcessingException;
+
+	/** Milliseconds to pause while repeatedly checking the recording state. */
+	private static final int DELAY_MS = 10;
 	
 	public AudioProcessing(double sampleRate, int numberOfFFTPoints) throws Exception {
 		mSampleRateInHz = sampleRate;
@@ -46,7 +49,7 @@ public class AudioProcessing extends Thread {
 		mBufferSize = 2*mNumberOfFFTPoints;
 		mRunInDebugMode = runInDebugMode;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
-		if(mRunInDebugMode) {
+		if(!mRunInDebugMode) {
 			if(!getInstanceOfAudioRecord()) {
 				LOG.e(TAG,mAudioProcessingException.getMessage());
 				throw mAudioProcessingException;
@@ -86,20 +89,25 @@ public class AudioProcessing extends Thread {
 	private boolean getInstanceOfAudioRecord() {
 		mMinBufferSize = AudioRecord.getMinBufferSize((int)mSampleRateInHz,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
 		if(mMinBufferSize < 0) {
-			mAudioProcessingException = new AudioProcessingException("Error when getting Minimum buffer: "+mMinBufferSize);
+			mAudioProcessingException = new AudioProcessingException("Error when getting minimum buffer: "+mMinBufferSize);
 			return false;
 		}
-		
+
 		try {
 			mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
 					(int)mSampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
 					AudioFormat.ENCODING_PCM_16BIT, 10*mMinBufferSize);
+
+			if (mRecorder.getState() != AudioRecord.STATE_INITIALIZED) {
+				mAudioProcessingException = new AudioProcessingException("Couldn't open audio for recording!");
+				return false;
+			}
 		} catch(IllegalArgumentException e) {
 			e.printStackTrace();
-			mAudioProcessingException =  new AudioProcessingException("Audio Recording device was not initialized!!!");
+			mAudioProcessingException = new AudioProcessingException("Audio Recording device was not initialized!!!");
 			return false;
 		}
-		
+
 		return true;
 	}
 	
@@ -108,23 +116,36 @@ public class AudioProcessing extends Thread {
 		double[] absNormalizedSignal;
 		byte tempBuffer[] = new byte[mBufferSize];
 
-		mRecorder.startRecording();
-
-		while(!mStopped) {
-			numberOfReadBytes = mRecorder.read(tempBuffer,0,mBufferSize);
-			if(numberOfReadBytes > 0) {
-				if(mFFT!=null) {
-					// Calculate captured signal's FFT.
-					absNormalizedSignal = mFFT.calculateFFT(tempBuffer, numberOfReadBytes);
-					notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+		synchronized(this) {
+			mRecorder.startRecording();
+			while (mRecorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
+				try {
+					Thread.sleep(DELAY_MS);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-			} else {
-				LOG.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
 			}
+
+			while(!mStopped) {
+				numberOfReadBytes = mRecorder.read(tempBuffer,0,mBufferSize);
+				if(numberOfReadBytes > 0) {
+					if(mFFT!=null) {
+						// Calculate captured signal's FFT.
+						absNormalizedSignal = mFFT.calculateFFT(tempBuffer, numberOfReadBytes);
+						notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+					}
+				} else {
+					LOG.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
+				}
+			}
+
+			if (mRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+				mRecorder.stop();
+			}
+
+			mRecorder.release();
+			mRecorder = null;
 		}
-        
-        mRecorder.stop();
-        mRecorder.release();
 	}
 	
 	public double getPeakFrequency() {
@@ -156,10 +177,9 @@ public class AudioProcessing extends Thread {
 	}
 	
 	public void notifyListenersOnFFTSamplesAvailableForDrawing(double[] absSignal) {
-		if(!mStopped) {
-			if(mListener!=null) {
-				mListener.onDrawableFFTSignalAvailable(absSignal);
-			}
+		if(mListener!=null && !mStopped) {
+			//Log.d(TAG,"notifyListenersOnFFTSamplesAvailableForDrawing");
+			mListener.onDrawableFFTSignalAvailable(absSignal);
 		}
 	}
 	
