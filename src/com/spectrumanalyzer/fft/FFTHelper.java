@@ -16,6 +16,13 @@ public class FFTHelper {
 		mComplexSignal = new Complex[numberOfFFTPoints];
 		mAbsSignal = new double[numberOfFFTPoints/2];
 	}
+	
+	public FFTHelper() {
+		mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
+		mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
+		mComplexSignal = new Complex[Constants.NUMBER_OF_FFT_POINTS];
+		mAbsSignal = new double[Constants.NUMBER_OF_FFT_POINTS/2];
+	}
 
 	public double[] calculateFFT(byte[] signal, int numberOfReadBytes) {			
 		double temp;
@@ -76,4 +83,14 @@ public class FFTHelper {
 	public double getMaxFFTSample() {
 		return mMaxFFTSample;
 	}
+	
+	public void setSamplingRate(double sampleRate) {
+		mSampleRateInHz = sampleRate;
+	}
+			
+	public void setNumberOfFFTPoints(int numberOfFFTPoints) {
+		mNumberOfFFTPoints = numberOfFFTPoints;
+		mComplexSignal = new Complex[numberOfFFTPoints];
+		mAbsSignal = new double[numberOfFFTPoints/2];
+	}		
 }
