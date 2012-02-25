@@ -10,11 +10,13 @@ import com.spectrumanalyzer.dsp.SignalHelper.DebugSignal;
 import com.spectrumanalyzer.fft.Constants;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -59,7 +61,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	
 	private static boolean mRunAppInDebugMode;
 	
-	private int mOrientation;
+	private int mOrientation = Configuration.ORIENTATION_PORTRAIT;
 	private int mMarkFreqPos;
 	
 	private int mZoomCounter = 5;
@@ -69,6 +71,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	private int mPointToStartDrawing;
 	
 	private static final int SET_FREQ_BUTTON_ID = 0x7f070100;
+	
+	private PowerManager.WakeLock mWakeLock;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -77,11 +81,15 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		setContentView(R.layout.main);
 		setSpectrumAnalyzer();;
 		mAlert = createAlertDialog();
+		
+		// refrain screen from dimming.
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNotDimScreen");
 	}
 	
 	private void setPanelSettings() {
-		mPanelWidth = spectrum_display.getWidth();
-		mDrawableArea = mPanelWidth-1;
+		mPanelWidth = spectrum_display.getPanelWidth();
+		mDrawableArea = mPanelWidth;
 		mMarkFreqPos = mDrawableArea/2;
 	}
 	
@@ -184,6 +192,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	@Override
 	protected void onResume() {
 		super.onResume();
+		mWakeLock.acquire();
+		setPanelSettings();
 		mAlert.show();
 	}
 	
@@ -317,7 +327,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		case R.id.btn_shift_mark_freq_to_left:
 			LOG.i(TAG,"Shift mark freq to left");
 			if(mMarkFreqPos == 0) {
-				mMarkFreqPos = mDrawableArea;
+				mMarkFreqPos = mDrawableArea-1;
 			} else {
 				mMarkFreqPos--;
 			}
@@ -325,7 +335,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 
 		case R.id.btn_shift_mark_freq_to_right:
 			LOG.i(TAG,"Shift mark freq to right");
-			if(mMarkFreqPos == mDrawableArea) {
+			if(mMarkFreqPos == (mDrawableArea-1)) {
 				mMarkFreqPos = 0;
 			} else {
 				mMarkFreqPos++;
@@ -349,7 +359,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 
 		case R.id.btn_shift_center_freq_to_right:
 			LOG.i(TAG,"Shift center freq to right");
-			if(mPointToStartDrawing < mDrawableArea) {
+			if(mPointToStartDrawing < (mDrawableArea-1)) {
 				mPointToStartDrawing++;
 			}
 			break;
@@ -379,6 +389,7 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	@Override
 	protected void onPause() {
 		super.onPause();
+		mWakeLock.release();
 		if(mAudioCapture!=null) {
 			mAudioCapture.close();
 		}
@@ -387,18 +398,13 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 	
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
-	    super.onConfigurationChanged(newConfig);
-	    
-		mPanelWidth = spectrum_display.getWidth();
+		super.onConfigurationChanged(newConfig);
 
-	    // Checks the orientation of the screen
-	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-	        LOG.i(TAG,"Orientation changed: LANDSCAPE");
-	        mOrientation = Configuration.ORIENTATION_LANDSCAPE;
-	    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-	    	LOG.i(TAG,"Orientation changed: PORTRAIT");
-	    	mOrientation = Configuration.ORIENTATION_PORTRAIT;
-	    }
+		if(newConfig.orientation != mOrientation) {
+			mOrientation = newConfig.orientation;
+			setPanelSettings();
+			LOG.d(TAG,"Orientation changed: "+((mOrientation==Configuration.ORIENTATION_LANDSCAPE)?"ORIENTATION_LANDSCAPE":"ORIENTATION_PORTRAIT")+" - mPanelWidth: "+mPanelWidth);
+		}
 	}
 	
 	private boolean getAudioProcessingInstance() {
@@ -432,7 +438,6 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = true;
 				resetDebugSignalSettings();
-				setPanelSettings();
 				getAudioProcessingInstance();
 				setDebugModeOptions();
 			}
@@ -440,7 +445,6 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		.setNegativeButton("No", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
 				mRunAppInDebugMode = false;
-				setPanelSettings();
 				getAudioProcessingInstance();
 			}
 		});
@@ -474,8 +478,8 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 		SpectrumAnalyzer.this.runOnUiThread(new Runnable() {
             public void run() {
         		spectrum_display.drawSpectrum(absSignal, mSampleRateInHz, mNumberOfFFTPoints, mAudioCapture.getMaxFFTSample(),mMarkFreqPos, mDrawableArea, mPointToStartDrawing);
-        		peak_freq_text_view.setText(Double.toString((mAudioCapture.getPeakFrequencyPosition()*(mSampleRateInHz/4))/(double)(mNumberOfFFTPoints/4))+" Hz");
-        		center_freq_text_view.setText(Double.toString((mSampleRateInHz/4)+((mPointToStartDrawing*(mSampleRateInHz/4))/(double)(mNumberOfFFTPoints/4)))+" Hz");
+        		peak_freq_text_view.setText(Double.toString(Panel.convertFromFFTSampleToFrequency(mAudioCapture.getPeakFrequencyPosition(), mNumberOfFFTPoints, mSampleRateInHz, mDrawableArea))+" Hz");
+        		center_freq_text_view.setText(Double.toString(Panel.convertFromPixelToFrequency((Math.round(mDrawableArea/2) + mPointToStartDrawing), mSampleRateInHz, mDrawableArea))+" Hz");
             }
         });
 	}
