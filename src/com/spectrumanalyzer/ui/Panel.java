@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -133,8 +134,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		p.setTextSize(17);
 		p.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 		//convert from pixel position to frequency.
-		double markFreq = convertFromPixelToFrequency(markPixelPos, samplingRate, drawableArea);		
-		canvas.drawText("Mark Freq: "+markFreq+" Hz",(mWidth/2),(mHeight-165),p);	
+		double markFreq = convertFromPixelToFrequency(markPixelPos, samplingRate, drawableArea);
+		Log.d("ZZ4FAP","mHeight: "+mHeight);
+		canvas.drawText("Mark Freq: "+markFreq+" Hz",((mWidth/2)+20),40,p);	
 		p.setColor(Color.GREEN);
 		if(markPixelPos >= pointToStartDrawing) {
 			canvas.drawLine((markPixelPos-pointToStartDrawing),0,(markPixelPos-pointToStartDrawing),(mHeight-1),p);			
@@ -202,9 +204,13 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 	}
 	
 	public int getPanelWidth() {
-    	Point outSize = new Point();
-    	mDisplay.getSize(outSize);
-    	return outSize.x;
+		if(android.os.Build.VERSION.SDK_INT >= 13) {
+	    	Point outSize = new Point();
+	    	mDisplay.getSize(outSize);
+	    	return outSize.x;
+		} else {
+			return mDisplay.getWidth();
+		}
 	}
 
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
