@@ -14,7 +14,7 @@
  * the License.
  */
 
-#include "Fft.h"
+#include "Fft.hh"
 
 #include <stdlib.h>
 #include <math.h>
