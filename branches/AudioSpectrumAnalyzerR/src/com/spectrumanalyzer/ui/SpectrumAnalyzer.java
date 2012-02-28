@@ -498,4 +498,9 @@ public class SpectrumAnalyzer extends Activity implements Button.OnClickListener
 				spectrum_display.drawEmptySpectrum(mSampleRateInHz, mMarkFreqPos, mDrawableArea, mPointToStartDrawing);
 			}}).create().show();
 	}
+	
+    /** Load jni .so on initialization */
+    static {
+         System.loadLibrary("native-fft-jni");
+    }
 }
