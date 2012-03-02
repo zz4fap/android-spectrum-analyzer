@@ -41,6 +41,7 @@ class Complex {
 		double re();
 		double im();
 		Complex operator/(Complex);
+		bool operator==(Complex b);
 }
 
 
