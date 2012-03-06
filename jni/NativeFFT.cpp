@@ -15,6 +15,7 @@
  */
 
 #include "Fft.hh"
+#include "Complex.hh"
 
 #include <stdlib.h>
 #include <math.h>
