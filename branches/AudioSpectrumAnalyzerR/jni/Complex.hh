@@ -1,5 +1,5 @@
-#ifndef COMPLEX_H
-#define COMPLEX_H
+#ifndef COMPLEX_HH
+#define COMPLEX_HH
 
 /*************************************************************************
  *
@@ -41,8 +41,8 @@ class Complex {
 		double re();
 		double im();
 		Complex operator/(Complex);
-		bool operator==(Complex b);
-}
+		bool operator==(Complex);
+		Complex operator=(Complex&);
+};
 
-
-#endif //COMPLEX_H
+#endif //COMPLEX_HH

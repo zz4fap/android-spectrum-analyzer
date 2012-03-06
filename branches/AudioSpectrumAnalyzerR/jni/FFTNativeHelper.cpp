@@ -1,100 +1,105 @@
-#include "Fft.hh"
-#include "Complex.hh"
+#include "FFTNativeHelper.hh"
 
-class FFTHelper {
+FFTNativeHelper::FFTNativeHelper(double sampleRate, int numberOfFFTPoints) {
+	mSampleRateInHz = sampleRate;
+	mNumberOfFFTPoints = numberOfFFTPoints;
+	re = new double[numberOfFFTPoints];
+	im = new double[numberOfFFTPoints];
+	mAbsSignal = new double[numberOfFFTPoints/2];
+	mFFT = new Fft();
+    int pow2 = mFFT->fftPow2FromWindowSize(numberOfFFTPoints);
+    mFFT->fftInit(pow2);
+}
 
-	private:
-		double mPeakFreq;
-		int mPeakPos;
-		double mSampleRateInHz;
-		int mNumberOfFFTPoints;
-		double mMaxFFTSample;
-		Complex mComplexSignal[];
-		double mAbsSignal[];
-	
-	public:
-	
-	FFTHelper(double sampleRate, int numberOfFFTPoints) {
-		mSampleRateInHz = sampleRate;
-		mNumberOfFFTPoints = numberOfFFTPoints;
-		mComplexSignal = new Complex[numberOfFFTPoints];
-		mAbsSignal = new double[numberOfFFTPoints/2];
-	}
-	
-	FFTHelper() {
-		mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
-		mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
-		mComplexSignal = new Complex[Constants.NUMBER_OF_FFT_POINTS];
-		mAbsSignal = new double[Constants.NUMBER_OF_FFT_POINTS/2];
-	}
+FFTNativeHelper::FFTNativeHelper() {
+	mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
+	mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
+	re = new double[numberOfFFTPoints];
+	im = new double[numberOfFFTPoints];
+	mAbsSignal = new double[Constants.NUMBER_OF_FFT_POINTS/2];
+	mFFT = new Fft();
+    int pow2 = mFFT->fftPow2FromWindowSize(numberOfFFTPoints);
+    mFFT->fftInit(pow2);
+}
 
-	double calculateFFT(char signal[], int numberOfReadBytes) {
-		double temp;
-		Complex y[];
-		
-		for(int i = 0; i < mNumberOfFFTPoints; i++) {
-			if((2*i+1) < numberOfReadBytes) {
-				temp = (double)((signal[2*i] & 0xFF) | (signal[2*i+1] << 8)) / 32768.0F;
-				mComplexSignal[i] = new Complex(temp,0.0);
-			} else {
-				mComplexSignal[i] = new Complex(0.0,0.0);
-			}
+FFTNativeHelper::~FFTNativeHelper() {
+	if(re)
+		delete [] re;
+	if(im)
+		delete [] im;
+	if(mAbsSignal)
+		delete [] mAbsSignal;
+	if(mFFT)
+		delete mFFT;
+
+	re = 0;
+	im = 0;
+	mAbsSignal = 0;
+	mFFT = 0;
+}
+
+double FFTNativeHelper::calculateFFT(char *signal, int numberOfReadBytes) {
+	double temp;
+
+	for(int i = 0; i < mNumberOfFFTPoints; i++) {
+		if((2*i+1) < numberOfReadBytes) {
+			temp = (double)((signal[2*i] & 0xFF) | (signal[2*i+1] << 8)) / 32768.0F;
+			re[i] = temp;
+			im[i] = 0.0;
+		} else {
+			re[i] = 0.0;
+			im[i] = 0.0;
 		}
+	}
 
-		y = FFT.fft(mComplexSignal);
-		
-		mMaxFFTSample = 0.0;
-		mPeakPos = 0;
-		for(int i = 0; i < (mNumberOfFFTPoints/2); i++)
-		{
-			mAbsSignal[i] = Math.sqrt(Math.pow(y[i].re(), 2) + Math.pow(y[i].im(), 2));
-			 
-			 if(mAbsSignal[i] > mMaxFFTSample)
-			 {
-				 mMaxFFTSample = mAbsSignal[i];
-				 mPeakPos = i;
-			 }
+	mFFT->fft(re,im);
+
+	mMaxFFTSample = 0.0;
+	mPeakPos = 0;
+	for(int i = 0; i < (mNumberOfFFTPoints/2); i++) {
+		mAbsSignal[i] = sqrt(pow(re[i], 2) + pow(im[i], 2));
+		if(mAbsSignal[i] > mMaxFFTSample) {
+			mMaxFFTSample = mAbsSignal[i];
+			mPeakPos = i;
 		}
-		
-		return mAbsSignal;
 	}
-	
-	double getPeakFrequency() {
-		mPeakFreq = mPeakPos*(mSampleRateInHz/mNumberOfFFTPoints);
-		return mPeakFreq;
-	}
-	
-	int getPeakFrequencyPosition() {
-		return mPeakPos;
-	}
-	
-	double getPeakFrequency(int absSignal[]) {
-		
-		int peakPos = 0, max = absSignal[0];
-		
-		for(int i=1; i < (mNumberOfFFTPoints/2); i++)
-		{
-			 if(absSignal[i] > max)
-			 {
-				 max = absSignal[i];
-				 peakPos = i;
-			 }
+
+	return mAbsSignal;
+}
+
+double FFTNativeHelper::getPeakFrequency() {
+	mPeakFreq = mPeakPos*(mSampleRateInHz/mNumberOfFFTPoints);
+	return mPeakFreq;
+}
+
+int FFTNativeHelper::getPeakFrequencyPosition() {
+	return mPeakPos;
+}
+
+double FFTNativeHelper::getPeakFrequency(int *absSignal) {
+
+	int peakPos = 0, max = absSignal[0];
+
+	for(int i=1; i < (mNumberOfFFTPoints/2); i++) {
+		if(absSignal[i] > max) {
+			max = absSignal[i];
+			peakPos = i;
 		}
-		
-		return peakPos*(mSampleRateInHz/mNumberOfFFTPoints);
 	}
-	
-	double getMaxFFTSample() {
-		return mMaxFFTSample;
-	}
-	
-	void setSamplingRate(double sampleRate) {
-		mSampleRateInHz = sampleRate;
-	}
-			
-	void setNumberOfFFTPoints(int numberOfFFTPoints) {
-		mNumberOfFFTPoints = numberOfFFTPoints;
-		mComplexSignal = new Complex[numberOfFFTPoints];
-		mAbsSignal = new double[numberOfFFTPoints/2];
-	}		
+
+	return peakPos*(mSampleRateInHz/mNumberOfFFTPoints);
+}
+
+double FFTNativeHelper::getMaxFFTSample() {
+	return mMaxFFTSample;
+}
+
+void FFTNativeHelper::setSamplingRate(double sampleRate) {
+	mSampleRateInHz = sampleRate;
+}
+
+void FFTNativeHelper::setNumberOfFFTPoints(int numberOfFFTPoints) {
+	mNumberOfFFTPoints = numberOfFFTPoints;
+	mComplexSignal = new Complex[numberOfFFTPoints];
+	mAbsSignal = new double[numberOfFFTPoints/2];
 }

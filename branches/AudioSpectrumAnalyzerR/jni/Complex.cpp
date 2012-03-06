@@ -87,3 +87,9 @@ bool Complex::operator==(Complex b) {
 		return false;
 	}
 }
+
+Complex Complex::operator=(Complex &b) {
+	this.re = b.re();
+	this.im = b.im();
+	return *this;
+}
