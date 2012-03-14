@@ -2,6 +2,7 @@ package com.spectrumanalyzer.dsp;
 
 import com.spectrumanalyzer.log.LOG;
 import com.spectrumanalyzer.fft.FFTHelper;
+import com.spectrumanalyzer.fft.NativeFFTHelper;
 import com.spectrumanalyzer.dsp.SignalHelper.DebugSignal;
 
 import android.media.AudioFormat;
@@ -25,6 +26,7 @@ public class AudioProcessing extends Thread {
 	private static AudioProcessingListener mListener;
 
 	private FFTHelper mFFT;
+	private NativeFFTHelper mNativeFFT;
 
 	private AudioProcessingException mAudioProcessingException;
 
@@ -36,6 +38,7 @@ public class AudioProcessing extends Thread {
 		mNumberOfFFTPoints = numberOfFFTPoints;
 		mBufferSize = 2*mNumberOfFFTPoints;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
+		mNativeFFT = new NativeFFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
 		if(!getInstanceOfAudioRecord()) {
 			LOG.e(TAG,mAudioProcessingException.getMessage());
 			throw mAudioProcessingException;
@@ -49,6 +52,7 @@ public class AudioProcessing extends Thread {
 		mBufferSize = 2*mNumberOfFFTPoints;
 		mRunInDebugMode = runInDebugMode;
 		mFFT = new FFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
+		mNativeFFT = new NativeFFTHelper(mSampleRateInHz,mNumberOfFFTPoints);
 		if(!mRunInDebugMode) {
 			if(!getInstanceOfAudioRecord()) {
 				LOG.e(TAG,mAudioProcessingException.getMessage());
@@ -63,7 +67,7 @@ public class AudioProcessing extends Thread {
 		if(mRunInDebugMode) {
 			runWithSignalHelper();
 		} else {
-			runWithAudioRecord();
+			runWithAudioRecordAndNativeFFT();
 		}
 	}
 	
@@ -132,6 +136,43 @@ public class AudioProcessing extends Thread {
 					if(mFFT!=null) {
 						// Calculate captured signal's FFT.
 						absNormalizedSignal = mFFT.calculateFFT(tempBuffer, numberOfReadBytes);
+						notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+					}
+				} else {
+					LOG.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
+				}
+			}
+
+			if (mRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+				mRecorder.stop();
+			}
+
+			mRecorder.release();
+			mRecorder = null;
+		}
+	}
+	
+	private void runWithAudioRecordAndNativeFFT() { // REAL_MODE - BUILT IN AUDIO DEVICE
+		int numberOfReadBytes = 0;
+		double[] absNormalizedSignal;
+		byte tempBuffer[] = new byte[mBufferSize];
+
+		synchronized(this) {
+			mRecorder.startRecording();
+			while (mRecorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
+				try {
+					Thread.sleep(DELAY_MS);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+			while(!mStopped) {
+				numberOfReadBytes = mRecorder.read(tempBuffer,0,mBufferSize);
+				if(numberOfReadBytes > 0) {
+					if(mFFT!=null) {
+						// Calculate captured signal's FFT.
+						absNormalizedSignal = mNativeFFT.calculateFFT(tempBuffer, numberOfReadBytes);
 						notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
 					}
 				} else {

@@ -38,7 +38,7 @@ FFTNativeHelper::~FFTNativeHelper() {
 	mFFT = 0;
 }
 
-double FFTNativeHelper::calculateFFT(char *signal, int numberOfReadBytes) {
+double* FFTNativeHelper::calculateFFT(char *signal, int numberOfReadBytes) {
 	double temp;
 
 	for(int i = 0; i < mNumberOfFFTPoints; i++) {
@@ -102,4 +102,8 @@ void FFTNativeHelper::setNumberOfFFTPoints(int numberOfFFTPoints) {
 	mNumberOfFFTPoints = numberOfFFTPoints;
 	mComplexSignal = new Complex[numberOfFFTPoints];
 	mAbsSignal = new double[numberOfFFTPoints/2];
+}
+
+int FFTNativeHelper::getFFTSize() {
+	return mNumberOfFFTPoints;
 }
