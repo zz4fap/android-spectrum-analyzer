@@ -17,7 +17,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := native-fft-jni
-LOCAL_SRC_FILES := NativeFFT.cpp
+LOCAL_SRC_FILES := NativeFFT.cpp Fft.cpp FFTNativeHelper.cpp
 # for native audio
 LOCAL_LDLIBS    += -lOpenSLES
 # for logging
