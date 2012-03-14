@@ -1,7 +1,9 @@
 #include "Fft.hh"
 #include "FFTNativeHelper.hh"
 
-using namespace android;
+#include <jni.h>
+
+//using namespace android;
 
 static FFTNativeHelper *mFFTNativeHelper = NULL;
 
@@ -20,10 +22,10 @@ jdoubleArray Java_com_spectrumanalyzer_fft_NativeFFTHelper_calculateFFT(JNIEnv* 
 	jdoubleArray output = NULL;
 
 	if(mFFTNativeHelper) {
-		jbyte* buffer = env->GetByteArrayElements(env, jSignal, NULL);
+		jbyte* buffer = env->GetByteArrayElements(jSignal, NULL);
 
-		mAbsSignal = mFFTNativeHelper->calculateFFT(buffer, numberOfReadBytes);
-		env->ReleaseByteArrayElements(env, buffer, 0);
+		mAbsSignal = mFFTNativeHelper->calculateFFT((char*)buffer, numberOfReadBytes);
+		env->ReleaseByteArrayElements(jSignal, buffer, 0);
 
 		//Copy mAbsSignal to a double array
 		int size = mFFTNativeHelper->getFFTSize()/2;

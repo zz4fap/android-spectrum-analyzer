@@ -11,17 +11,6 @@ FFTNativeHelper::FFTNativeHelper(double sampleRate, int numberOfFFTPoints) {
     mFFT->fftInit(pow2);
 }
 
-FFTNativeHelper::FFTNativeHelper() {
-	mSampleRateInHz = Constants.SAMPLING_FREQUENCY;
-	mNumberOfFFTPoints = Constants.NUMBER_OF_FFT_POINTS;
-	re = new double[numberOfFFTPoints];
-	im = new double[numberOfFFTPoints];
-	mAbsSignal = new double[Constants.NUMBER_OF_FFT_POINTS/2];
-	mFFT = new Fft();
-    int pow2 = mFFT->fftPow2FromWindowSize(numberOfFFTPoints);
-    mFFT->fftInit(pow2);
-}
-
 FFTNativeHelper::~FFTNativeHelper() {
 	if(re)
 		delete [] re;
@@ -52,7 +41,7 @@ double* FFTNativeHelper::calculateFFT(char *signal, int numberOfReadBytes) {
 		}
 	}
 
-	mFFT->fft(re,im);
+	mFFT->fft((float*)re,(float*)im);
 
 	mMaxFFTSample = 0.0;
 	mPeakPos = 0;
@@ -100,7 +89,6 @@ void FFTNativeHelper::setSamplingRate(double sampleRate) {
 
 void FFTNativeHelper::setNumberOfFFTPoints(int numberOfFFTPoints) {
 	mNumberOfFFTPoints = numberOfFFTPoints;
-	mComplexSignal = new Complex[numberOfFFTPoints];
 	mAbsSignal = new double[numberOfFFTPoints/2];
 }
 

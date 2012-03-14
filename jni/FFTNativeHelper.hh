@@ -1,9 +1,8 @@
 #ifndef FFT_NATIVE_HELPER_HH
 #define FFT_NATIVE_HELPER_HH
 
-#include "Fft.hh"
-#include "Complex.hh"
 #include <math.h>
+#include "Fft.hh"
 
 class FFTNativeHelper {
 
@@ -20,7 +19,6 @@ class FFTNativeHelper {
 
 	public:
 		FFTNativeHelper(double, int);
-		FFTNativeHelper();
 		~FFTNativeHelper();
 		double* calculateFFT(char*, int);
 		double getPeakFrequency();
