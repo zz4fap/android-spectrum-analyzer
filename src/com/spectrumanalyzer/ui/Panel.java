@@ -135,7 +135,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback {
 		p.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 		//convert from pixel position to frequency.
 		double markFreq = convertFromPixelToFrequency(markPixelPos, samplingRate, drawableArea);
-		Log.d("ZZ4FAP","mHeight: "+mHeight);
 		canvas.drawText("Mark Freq: "+markFreq+" Hz",((mWidth/2)+20),40,p);	
 		p.setColor(Color.GREEN);
 		if(markPixelPos >= pointToStartDrawing) {

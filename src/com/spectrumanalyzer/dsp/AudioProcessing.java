@@ -8,6 +8,7 @@ import com.spectrumanalyzer.dsp.SignalHelper.DebugSignal;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 public class AudioProcessing extends Thread {
 	
@@ -64,14 +65,18 @@ public class AudioProcessing extends Thread {
 	
 	@Override
 	public void run() {
-		if(mRunInDebugMode) {
-			runWithSignalHelper();
-		} else {
-			runWithAudioRecordAndNativeFFT();
+		try {
+			if(mRunInDebugMode) {
+				runWithSignalHelper();
+			} else {
+				runWithAudioRecordAndNativeFFT();
+			}
+		} catch (AudioProcessingException e) {
+			e.printStackTrace();
 		}
 	}
 	
-	private void runWithSignalHelper() { // DEBUG_MODE - simulated sinusoids signal
+	private void runWithSignalHelper() throws AudioProcessingException { // DEBUG_MODE - simulated sinusoids signal
 		int numberOfReadBytes = 0;
 		double[] absNormalizedSignal;
 		byte tempBuffer[] = new byte[mBufferSize]; // 2*Buffer size because it's a short variable into a array of bytes.
@@ -79,10 +84,14 @@ public class AudioProcessing extends Thread {
 		while(!mStopped) {
 			numberOfReadBytes = DebugSignal.read(tempBuffer,mBufferSize,mSampleRateInHz);
 			if(numberOfReadBytes > 0) {
-				if(mFFT!=null) {
+				if(mNativeFFT!=null) {
 					// Calculate captured signal's FFT.
-					absNormalizedSignal = mFFT.calculateFFT(tempBuffer, numberOfReadBytes);
-					notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+					absNormalizedSignal = mNativeFFT.calculateFFT(tempBuffer, numberOfReadBytes);					
+					if(absNormalizedSignal==null) {
+						throw new AudioProcessingException("FFT Native Helper was NOT initialized!!");
+					} else {
+						notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+					}
 				}
 			} else {
 				LOG.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
@@ -152,7 +161,7 @@ public class AudioProcessing extends Thread {
 		}
 	}
 	
-	private void runWithAudioRecordAndNativeFFT() { // REAL_MODE - BUILT IN AUDIO DEVICE
+	private void runWithAudioRecordAndNativeFFT() throws AudioProcessingException { // REAL_MODE - BUILT IN AUDIO DEVICE
 		int numberOfReadBytes = 0;
 		double[] absNormalizedSignal;
 		byte tempBuffer[] = new byte[mBufferSize];
@@ -170,10 +179,14 @@ public class AudioProcessing extends Thread {
 			while(!mStopped) {
 				numberOfReadBytes = mRecorder.read(tempBuffer,0,mBufferSize);
 				if(numberOfReadBytes > 0) {
-					if(mFFT!=null) {
+					if(mNativeFFT!=null) {
 						// Calculate captured signal's FFT.
 						absNormalizedSignal = mNativeFFT.calculateFFT(tempBuffer, numberOfReadBytes);
-						notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+						if(absNormalizedSignal==null) {
+							throw new AudioProcessingException("FFT Native Helper was NOT initialized!!");
+						} else {
+							notifyListenersOnFFTSamplesAvailableForDrawing(absNormalizedSignal);
+						}
 					}
 				} else {
 					LOG.e(TAG,"There was an error reading the audio device - ERROR: "+numberOfReadBytes);
@@ -190,19 +203,19 @@ public class AudioProcessing extends Thread {
 	}
 	
 	public double getPeakFrequency() {
-		return mFFT.getPeakFrequency();
+		return mNativeFFT.getPeakFrequency();
 	}
 	
-	public double getPeakFrequency(int[] absSignal) {
-		return mFFT.getPeakFrequency(absSignal);
-	}
+//	public double getPeakFrequency(int[] absSignal) {
+//		return mNativeFFT.getPeakFrequency(absSignal);
+//	}
 	
 	public double getMaxFFTSample() {
-		return mFFT.getMaxFFTSample();
+		return mNativeFFT.getMaxFFTSample();
 	}
 	
 	public int getPeakFrequencyPosition() {
-		return mFFT.getPeakFrequencyPosition();
+		return mNativeFFT.getPeakFrequencyPosition();
 	}
 	
 	public void close() { 
@@ -219,7 +232,6 @@ public class AudioProcessing extends Thread {
 	
 	public void notifyListenersOnFFTSamplesAvailableForDrawing(double[] absSignal) {
 		if(mListener!=null && !mStopped) {
-			//Log.d(TAG,"notifyListenersOnFFTSamplesAvailableForDrawing");
 			mListener.onDrawableFFTSignalAvailable(absSignal);
 		}
 	}
